@@ -5,7 +5,7 @@
  * with ZERO redirects to Google Apps Script!
  */
 
-import { loadPortalSettings, verifyCertificateDirect } from './db-service.js';
+import { verifyCertificateDirect } from './db-service.js';
 import { buildCanonicalFirebaseVerifyLink } from './cams-client.js';
 
 const resultCard = document.getElementById('verify-result-card');
@@ -13,7 +13,6 @@ const form = document.getElementById('verify-form');
 const input = document.getElementById('cert-id-input');
 const submitBtn = document.getElementById('btn-verify-submit');
 
-let cachedSettings = null;
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -224,10 +223,7 @@ async function runVerification(rawId, pushUrl = true) {
   renderLoadingState(certId);
 
   try {
-    if (!cachedSettings) {
-      cachedSettings = await loadPortalSettings();
-    }
-    const result = await verifyCertificateDirect(certId, cachedSettings);
+    const result = await verifyCertificateDirect(certId);
     renderVerificationResult(result);
     resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   } catch (err) {

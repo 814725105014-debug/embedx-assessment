@@ -14,10 +14,7 @@ import {
   isFirebaseConfigured
 } from './firebase-config.js';
 import { DEFAULT_QUESTIONS } from './questions-data.js';
-import {
-  buildCanonicalFirebaseVerifyLink,
-  fetchCertificateJsonFromCams
-} from './cams-client.js';
+import { buildCanonicalFirebaseVerifyLink } from './cams-client.js';
 
 const STORAGE_KEYS = {
   SETTINGS: 'embedx_portal_settings_v1',
@@ -576,15 +573,8 @@ export async function upsertVerifiedCertificate(record) {
   return publicDoc;
 }
 
-/**
- * Verifies a Certificate ID 100% directly on Firebase (`/verify`) with ZERO redirects:
- * 1. Cloud Firestore `certificates/{docKey}` (primary registry — ~80ms)
- * 2. LocalStorage `embedx_certificates_v1` + `embedx_submissions_v1`
- * 3. Silent anonymous CAMS JSON API fallback (`credentials: 'omit'`, no browser redirect,
- *    no `/u/5/` Google account bug) for any row generated directly from Google Sheets/Forms,
- *    auto-caching valid results into Firestore!
- */
-export async function verifyCertificateDirect(certificateId, settingsInput = null) {
+/** Verify only against the public Firestore certificate registry. */
+export async function verifyCertificateDirect(certificateId) {
   const searchedId = String(certificateId || '').trim();
   if (!searchedId) {
     return { status: 'EMPTY', certificateId: '' };
@@ -609,7 +599,6 @@ export async function verifyCertificateDirect(certificateId, settingsInput = nul
       const { doc, getDoc } = ctx.fsMod;
       for (const key of candidateKeys) {
         const snap = await getDoc(doc(ctx.db, 'certificates', key));
-        registryReachable = true;
         if (snap.exists()) {
           firestoreCloudHealthy = true;
           const data = snap.data();
@@ -621,27 +610,10 @@ export async function verifyCertificateDirect(certificateId, settingsInput = nul
           };
         }
       }
+      registryReachable = true;
     } catch (_) {
-      // Continue to local & JSON API fallback
+      // Fail closed if the registry cannot be queried.
     }
-  }
-
-  // 3. Silent background JSON API lookup from CAMS Sheet (no browser redirect!)
-  const settings = settingsInput || (await loadPortalSettings());
-  const apiResult = await fetchCertificateJsonFromCams(searchedId, settings);
-  if (apiResult && apiResult.status) {
-    if (apiResult.status === 'VALID') {
-      return {
-        ...apiResult,
-        status: 'VALID',
-        verifiedAt: apiResult.verifiedAt || nowStamp,
-        source: 'Official CAMS Register'
-      };
-    }
-    return {
-      ...apiResult,
-      verifiedAt: apiResult.verifiedAt || nowStamp
-    };
   }
 
   return {
