@@ -1,48 +1,56 @@
 /* ==========================================================================
    EMBEDX Workshop Quiz & Proctored Assessment Portal
-   Theme: Royal Purple, Metallic Gold & Crisp White (Mobile-First)
+   Signature Theme: Radiant Metallic Gold · Crisp Pure White · Royal Purple
    SRM TRP Engineering College · Dept. of EEE · EMBEDX Club
    ========================================================================== */
 
 :root {
-  --bg-page: #f8f6fc;
+  /* Pure White & Warm Golden-Ivory Surfaces */
+  --bg-page: #fffdf8;
   --bg-surface: #ffffff;
-  --bg-surface-soft: #fbf9ff;
-  --bg-purple-tint: #f3ecff;
-  --bg-gold-tint: #fffbeb;
+  --bg-surface-soft: #fffbeb;
+  --bg-purple-tint: #f5f0ff;
+  --bg-gold-tint: #fef3c7;
   --bg-input: #ffffff;
 
+  /* Royal Purple Palette */
   --purple-deep: #3b0764;
   --purple-primary: #5b21b6;
+  --purple-royal: #6d28d9;
   --purple-bright: #7c3aed;
-  --purple-border: rgba(91, 33, 182, 0.16);
+  --purple-border: rgba(91, 33, 182, 0.2);
 
-  --gold-deep: #b45309;
+  /* Metallic Gold Palette */
+  --gold-deep: #92400e;
+  --gold-rich: #b45309;
   --gold-primary: #d97706;
   --gold-bright: #f59e0b;
-  --gold-soft: #fde68a;
-  --gold-border: rgba(217, 119, 6, 0.36);
+  --gold-gleam: #fbbf24;
+  --gold-pale: #fde68a;
+  --gold-border: rgba(217, 119, 6, 0.48);
 
-  --text-primary: #1e1035;
-  --text-secondary: #4a3869;
-  --text-muted: #736291;
+  /* High-Contrast Typography */
+  --text-primary: #240a40;
+  --text-secondary: #4c2875;
+  --text-muted: #705591;
 
+  /* Semantic Status Colors */
   --status-ok-bg: #ecfdf5;
   --status-ok-text: #047857;
-  --status-ok-border: #a7f3d0;
+  --status-ok-border: #6ee7b7;
 
   --status-warn-bg: #fffbeb;
   --status-warn-text: #b45309;
-  --status-warn-border: #fcd34d;
+  --status-warn-border: #fbbf24;
 
   --status-bad-bg: #fef2f2;
   --status-bad-text: #b91c1c;
-  --status-bad-border: #fecaca;
+  --status-bad-border: #fca5a5;
 
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --shadow-card: 0 12px 32px rgba(59, 7, 100, 0.08), 0 2px 6px rgba(59, 7, 100, 0.04);
+  --radius-sm: 11px;
+  --radius-md: 15px;
+  --radius-lg: 22px;
+  --shadow-royal: 0 14px 36px rgba(76, 29, 149, 0.1), 0 4px 14px rgba(217, 119, 6, 0.1);
 }
 
 *,
@@ -58,9 +66,11 @@ body {
   padding: 0;
   min-height: 100%;
   background:
-    radial-gradient(circle at 100% 0%, rgba(245, 158, 11, 0.12) 0%, transparent 42%),
-    radial-gradient(circle at 0% 0%, rgba(109, 40, 217, 0.10) 0%, transparent 48%),
-    var(--bg-page);
+    radial-gradient(circle at 0% 0%, rgba(251, 191, 36, 0.24) 0%, transparent 44%),
+    radial-gradient(circle at 100% 0%, rgba(109, 40, 217, 0.18) 0%, transparent 46%),
+    radial-gradient(circle at 50% 100%, rgba(245, 158, 11, 0.14) 0%, transparent 50%),
+    linear-gradient(180deg, #ffffff 0%, #fffdf7 52%, #f8f4ff 100%);
+  background-attachment: fixed;
   color: var(--text-primary);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   line-height: 1.5;
@@ -92,13 +102,13 @@ body.exam-locked * {
   -webkit-touch-callout: none !important;
 }
 
-/* Instant Opaque Security Curtain when focus blurs (blocks Circle-to-Search & Recents preview) */
+/* Instant Opaque Royal Purple & Gold Security Curtain when focus blurs */
 #security-curtain {
   display: none;
   position: fixed;
   inset: 0;
   z-index: 99990;
-  background: radial-gradient(circle at center, #2e0947 0%, #140321 78%);
+  background: radial-gradient(circle at center, #3b0764 0%, #19032e 80%);
   padding: 24px 18px;
   align-items: center;
   justify-content: center;
@@ -139,20 +149,21 @@ body.security-curtain-active #exam-workspace {
 }
 
 /* ==========================================================================
-   Top Royal Purple & Gold Brand Header
+   Top Royal Purple & Metallic Gold Brand Header
    ========================================================================== */
 
 .brand-bar {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 13px 16px;
-  background: linear-gradient(135deg, var(--purple-deep) 0%, var(--purple-primary) 65%, #6d28d9 100%);
-  border: 1.5px solid rgba(245, 158, 11, 0.48);
+  background: linear-gradient(135deg, #3b0764 0%, #5b21b6 52%, #4c1d95 100%);
+  border: 2px solid var(--gold-gleam);
   border-radius: var(--radius-md);
-  box-shadow: 0 10px 26px rgba(91, 33, 182, 0.22);
-  margin-bottom: 16px;
+  box-shadow: 0 10px 28px rgba(91, 33, 182, 0.25), 0 0 0 3px rgba(251, 191, 36, 0.16);
+  margin-bottom: 18px;
   color: #ffffff;
 }
 
@@ -164,18 +175,18 @@ body.security-curtain-active #exam-workspace {
 }
 
 .brand-emblem {
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   border-radius: 12px;
   background: #ffffff;
-  border: 2px solid #fbbf24;
+  border: 2.5px solid var(--gold-gleam);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   overflow: hidden;
   padding: 2px;
-  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
+  box-shadow: 0 4px 14px rgba(251, 191, 36, 0.45);
 }
 
 .brand-emblem img {
@@ -183,22 +194,6 @@ body.security-curtain-active #exam-workspace {
   height: 100%;
   object-fit: contain;
   display: block;
-}
-
-.club-logo-showcase {
-  display: flex;
-  justify-content: center;
-  margin: 0 auto 14px;
-}
-
-.club-logo-showcase img {
-  width: 148px;
-  height: auto;
-  border-radius: 14px;
-  border: 1.5px solid rgba(217, 119, 6, 0.32);
-  box-shadow: 0 6px 20px rgba(59, 7, 100, 0.08);
-  background: #ffffff;
-  padding: 6px;
 }
 
 .brand-titles {
@@ -209,7 +204,7 @@ body.security-curtain-active #exam-workspace {
   margin: 0;
   font-size: 15.5px;
   font-weight: 800;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.25px;
   color: #ffffff;
   white-space: nowrap;
   overflow: hidden;
@@ -219,8 +214,8 @@ body.security-curtain-active #exam-workspace {
 .brand-titles p {
   margin: 1px 0 0;
   font-size: 11.5px;
-  color: #fde68a;
-  font-weight: 500;
+  color: var(--gold-pale);
+  font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -230,42 +225,76 @@ body.security-curtain-active #exam-workspace {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 7px 12px;
+  padding: 7px 13px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(253, 230, 138, 0.45);
-  color: #fffbeb;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  border: 1px solid #fef3c7;
+  color: #2e074f;
   text-decoration: none;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
   flex-shrink: 0;
-  transition: all 0.15s ease;
+  box-shadow: 0 3px 10px rgba(245, 158, 11, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease;
 }
 
 .header-pill:hover {
-  background: rgba(245, 158, 11, 0.28);
-  border-color: #fbbf24;
-  color: #ffffff;
+  filter: brightness(1.06);
+  transform: translateY(-1px);
 }
 
 /* ==========================================================================
-   Cards, Badges & Typography
+   Logo Showcase, Cards, Golden Ribbons & Meta Tiles
    ========================================================================== */
+
+.club-logo-showcase {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto 14px;
+}
+
+.club-logo-showcase img {
+  width: 154px;
+  height: auto;
+  border-radius: 16px;
+  border: 2px solid var(--gold-gleam);
+  box-shadow: 0 8px 24px rgba(217, 119, 6, 0.18), 0 2px 8px rgba(91, 33, 182, 0.08);
+  background: #ffffff;
+  padding: 7px;
+}
 
 .card {
   position: relative;
-  background: var(--bg-surface);
-  border: 1px solid var(--purple-border);
-  border-top: 3.5px solid var(--gold-primary);
+  overflow: hidden;
+  background: #ffffff;
+  border: 1.5px solid var(--gold-border);
   border-radius: var(--radius-lg);
-  padding: 20px 18px;
-  box-shadow: var(--shadow-card);
+  padding: 24px 18px 20px;
+  box-shadow: var(--shadow-royal);
   margin-bottom: 16px;
+}
+
+/* Shimmering Gold-Purple-Gold Crown Bar across every White Card */
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(
+    90deg,
+    #f59e0b 0%,
+    #fbbf24 28%,
+    #6d28d9 50%,
+    #fbbf24 72%,
+    #d97706 100%
+  );
 }
 
 @media (min-width: 640px) {
   .card {
-    padding: 26px 26px;
+    padding: 28px 26px 26px;
   }
 }
 
@@ -273,22 +302,23 @@ body.security-curtain-active #exam-workspace {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 12px;
+  padding: 5px 13px;
   border-radius: 999px;
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
-  background: linear-gradient(135deg, #f3ecff, #fffbeb);
-  color: var(--purple-primary);
-  border: 1px solid rgba(217, 119, 6, 0.35);
+  letter-spacing: 0.65px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: var(--purple-deep);
+  border: 1px solid var(--gold-bright);
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.18);
   margin-bottom: 12px;
 }
 
 .card-title {
   margin: 0 0 6px;
-  font-size: 21px;
-  font-weight: 800;
+  font-size: 22px;
+  font-weight: 900;
   letter-spacing: -0.3px;
   color: var(--purple-deep);
 }
@@ -296,19 +326,20 @@ body.security-curtain-active #exam-workspace {
 .card-subtitle {
   margin: 0 0 18px;
   font-size: 13.5px;
+  font-weight: 500;
   color: var(--text-secondary);
 }
 
 .meta-strip {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: 9px;
   margin-bottom: 20px;
 }
 
 .meta-tile {
-  background: linear-gradient(180deg, var(--bg-surface-soft) 0%, var(--bg-gold-tint) 100%);
-  border: 1px solid rgba(217, 119, 6, 0.25);
+  background: linear-gradient(180deg, #fffdf5 0%, #fef3c7 100%);
+  border: 1.5px solid rgba(245, 158, 11, 0.45);
   border-radius: var(--radius-sm);
   padding: 10px 8px;
   text-align: center;
@@ -316,15 +347,15 @@ body.security-curtain-active #exam-workspace {
 
 .meta-tile strong {
   display: block;
-  font-size: 15px;
-  font-weight: 800;
-  color: var(--purple-primary);
+  font-size: 15.5px;
+  font-weight: 900;
+  color: var(--purple-deep);
 }
 
 .meta-tile span {
   font-size: 11px;
-  font-weight: 600;
-  color: var(--gold-deep);
+  font-weight: 700;
+  color: var(--gold-rich);
 }
 
 /* ==========================================================================
@@ -351,12 +382,12 @@ body.security-curtain-active #exam-workspace {
 
 .field label {
   font-size: 12.5px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--purple-deep);
 }
 
 .field label .req {
-  color: #dc2626;
+  color: var(--gold-primary);
 }
 
 .field input,
@@ -366,8 +397,8 @@ body.security-curtain-active #exam-workspace {
   padding: 12px 13px;
   font-size: 16px;
   color: var(--text-primary);
-  background: var(--bg-input);
-  border: 1.5px solid rgba(91, 33, 182, 0.22);
+  background: #ffffff;
+  border: 1.5px solid rgba(91, 33, 182, 0.24);
   border-radius: var(--radius-sm);
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -376,14 +407,14 @@ body.security-curtain-active #exam-workspace {
 
 .field input::placeholder,
 .field textarea::placeholder {
-  color: #9c8db5;
+  color: #9b88b8;
 }
 
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
-  border-color: var(--purple-primary);
-  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.2);
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 0 3.5px rgba(251, 191, 36, 0.28);
 }
 
 .field-hint {
@@ -392,7 +423,7 @@ body.security-curtain-active #exam-workspace {
 }
 
 /* ==========================================================================
-   Buttons (Royal Purple & Metallic Gold)
+   Buttons — Royal Purple & Metallic Gold
    ========================================================================== */
 
 .btn {
@@ -403,12 +434,12 @@ body.security-curtain-active #exam-workspace {
   min-height: 48px;
   padding: 12px 18px;
   border-radius: var(--radius-sm);
-  border: 1px solid transparent;
+  border: 1.5px solid transparent;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 800;
   font-family: inherit;
   cursor: pointer;
-  transition: transform 0.1s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.1s ease, opacity 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
   text-decoration: none;
 }
 
@@ -417,7 +448,7 @@ body.security-curtain-active #exam-workspace {
 }
 
 .btn:disabled {
-  opacity: 0.52;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -425,31 +456,41 @@ body.security-curtain-active #exam-workspace {
   width: 100%;
 }
 
-/* Primary Royal Purple with subtle Gold rim */
+/* Royal Purple with Metallic Gold Rim */
 .btn-primary {
-  background: linear-gradient(135deg, var(--purple-primary) 0%, var(--purple-deep) 100%);
-  border-color: rgba(245, 158, 11, 0.45);
+  background: linear-gradient(135deg, #6d28d9 0%, #4c1d95 60%, #3b0764 100%);
+  border-color: var(--gold-gleam);
   color: #ffffff;
-  box-shadow: 0 6px 18px rgba(91, 33, 182, 0.26);
+  box-shadow: 0 6px 20px rgba(91, 33, 182, 0.28);
 }
 
-/* Rich Gold Action Button */
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+/* Radiant Metallic Gold Button with Royal Purple Ink */
 .btn-emerald,
 .btn-gold {
-  background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
-  border-color: rgba(255, 255, 255, 0.3);
-  color: #ffffff;
-  box-shadow: 0 6px 18px rgba(217, 119, 6, 0.3);
+  background: linear-gradient(135deg, #fde68a 0%, #fbbf24 38%, #f59e0b 80%, #d97706 100%);
+  border-color: #b45309;
+  color: #2e074f;
+  box-shadow: 0 6px 20px rgba(217, 119, 6, 0.32);
+}
+
+.btn-gold:hover:not(:disabled),
+.btn-emerald:hover:not(:disabled) {
+  filter: brightness(1.04);
 }
 
 .btn-danger {
   background: linear-gradient(135deg, #ef4444, #b91c1c);
+  border-color: #991b1b;
   color: #ffffff;
 }
 
 .btn-secondary {
-  background: var(--bg-purple-tint);
-  border-color: rgba(91, 33, 182, 0.22);
+  background: linear-gradient(180deg, #ffffff 0%, #f5f0ff 100%);
+  border-color: rgba(91, 33, 182, 0.28);
   color: var(--purple-deep);
 }
 
@@ -478,26 +519,26 @@ body.security-curtain-active #exam-workspace {
   align-items: flex-start;
   gap: 11px;
   padding: 12px 13px;
-  background: var(--bg-surface-soft);
-  border: 1px solid rgba(91, 33, 182, 0.16);
-  border-left: 3.5px solid var(--purple-primary);
+  background: linear-gradient(90deg, #fffdf7 0%, #ffffff 100%);
+  border: 1px solid rgba(217, 119, 6, 0.32);
+  border-left: 4px solid var(--purple-primary);
   border-radius: var(--radius-sm);
   font-size: 13.5px;
   color: var(--text-secondary);
 }
 
 .rules-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
-  color: var(--purple-deep);
-  border: 1px solid rgba(217, 119, 6, 0.35);
+  width: 27px;
+  height: 27px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #fde68a, #f59e0b);
+  color: #2e074f;
+  border: 1px solid #d97706;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-weight: 800;
+  font-weight: 900;
   font-size: 13px;
 }
 
@@ -505,13 +546,14 @@ body.security-curtain-active #exam-workspace {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 13px;
+  padding: 14px;
   border-radius: var(--radius-sm);
-  background: var(--bg-gold-tint);
-  border: 1.5px solid var(--gold-border);
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 1.5px solid var(--gold-bright);
   margin-bottom: 16px;
   cursor: pointer;
   font-size: 13.5px;
+  font-weight: 600;
   color: var(--purple-deep);
 }
 
@@ -531,10 +573,9 @@ body.security-curtain-active #exam-workspace {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(14px);
-  border-bottom: 1.5px solid rgba(217, 119, 6, 0.28);
-  box-shadow: 0 4px 16px rgba(59, 7, 100, 0.06);
+  background: linear-gradient(135deg, #3b0764 0%, #5b21b6 100%);
+  border-bottom: 2.5px solid var(--gold-gleam);
+  box-shadow: 0 6px 20px rgba(59, 7, 100, 0.22);
   padding: 10px 14px;
   margin: -16px -14px 14px;
 }
@@ -552,24 +593,24 @@ body.security-curtain-active #exam-workspace {
   gap: 6px;
   padding: 6px 12px;
   border-radius: 999px;
-  background: var(--bg-purple-tint);
-  border: 1.5px solid rgba(91, 33, 182, 0.3);
-  color: var(--purple-deep);
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border: 1.5px solid var(--gold-gleam);
+  color: #2e074f;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 900;
 }
 
 .timer-pill.warn {
-  background: var(--bg-gold-tint);
-  border-color: var(--gold-bright);
-  color: var(--gold-deep);
+  background: #fbbf24;
+  border-color: #ffffff;
+  color: #2e074f;
 }
 
 .timer-pill.danger {
-  background: #fef2f2;
-  border-color: #ef4444;
-  color: #b91c1c;
+  background: #ef4444;
+  border-color: #fecaca;
+  color: #ffffff;
   animation: pulseDanger 1s infinite;
 }
 
@@ -585,10 +626,10 @@ body.security-curtain-active #exam-workspace {
   padding: 6px 10px;
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 700;
-  background: var(--bg-gold-tint);
-  border: 1px solid var(--gold-border);
-  color: var(--gold-deep);
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(253, 230, 138, 0.6);
+  color: #fef3c7;
 }
 
 .shield-pill.has-warning {
@@ -597,10 +638,17 @@ body.security-curtain-active #exam-workspace {
   color: #b91c1c;
 }
 
+#exam-workspace #btn-open-palette {
+  background: #ffffff;
+  color: var(--purple-deep);
+  border-color: var(--gold-gleam);
+  font-weight: 800;
+}
+
 .progress-track {
   width: 100%;
   height: 6px;
-  background: #ede9fe;
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 999px;
   overflow: hidden;
   margin-top: 9px;
@@ -608,7 +656,7 @@ body.security-curtain-active #exam-workspace {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--purple-primary), var(--gold-bright));
+  background: linear-gradient(90deg, #fde68a 0%, #fbbf24 55%, #f59e0b 100%);
   border-radius: 999px;
   transition: width 0.25s ease;
 }
@@ -621,15 +669,15 @@ body.security-curtain-active #exam-workspace {
 #question-canvas {
   display: block;
   width: 100%;
-  border-radius: 14px;
-  box-shadow: 0 8px 24px rgba(59, 7, 100, 0.08);
+  border-radius: 15px;
+  box-shadow: 0 10px 26px rgba(76, 29, 149, 0.1), 0 2px 8px rgba(217, 119, 6, 0.12);
 }
 
 .options-stack {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-bottom: 86px;
+  margin-bottom: 88px;
 }
 
 .option-btn {
@@ -641,15 +689,15 @@ body.security-curtain-active #exam-workspace {
   padding: 13px 14px;
   text-align: left;
   background: #ffffff;
-  border: 1.5px solid rgba(91, 33, 182, 0.18);
+  border: 1.5px solid rgba(91, 33, 182, 0.2);
   border-radius: var(--radius-md);
   color: var(--text-primary);
   font-size: 15px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(59, 7, 100, 0.04);
-  transition: border-color 0.14s ease, background 0.14s ease, transform 0.08s ease;
+  box-shadow: 0 3px 10px rgba(59, 7, 100, 0.05);
+  transition: border-color 0.14s ease, background 0.14s ease, transform 0.08s ease, box-shadow 0.14s ease;
 }
 
 .option-btn:active {
@@ -657,28 +705,30 @@ body.security-curtain-active #exam-workspace {
 }
 
 .option-btn.selected {
-  background: linear-gradient(135deg, #faf5ff 0%, #fffbeb 100%);
-  border: 2px solid var(--gold-primary);
-  box-shadow: 0 4px 16px rgba(217, 119, 6, 0.18);
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 55%, #f5f0ff 100%);
+  border: 2.5px solid var(--gold-primary);
+  box-shadow: 0 6px 18px rgba(217, 119, 6, 0.24);
 }
 
 .option-letter {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 9px;
-  background: var(--bg-purple-tint);
-  color: var(--purple-primary);
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border: 1px solid rgba(217, 119, 6, 0.45);
+  color: var(--purple-deep);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
+  font-weight: 900;
   font-size: 13.5px;
   flex-shrink: 0;
 }
 
 .option-btn.selected .option-letter {
-  background: linear-gradient(135deg, var(--gold-bright), var(--gold-deep));
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--purple-royal), var(--purple-deep));
+  border-color: var(--gold-gleam);
+  color: var(--gold-pale);
 }
 
 /* Sticky Mobile Bottom Exam Bar */
@@ -690,8 +740,8 @@ body.security-curtain-active #exam-workspace {
   z-index: 45;
   background: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(14px);
-  border-top: 1.5px solid rgba(91, 33, 182, 0.16);
-  box-shadow: 0 -4px 18px rgba(59, 7, 100, 0.06);
+  border-top: 2px solid var(--gold-gleam);
+  box-shadow: 0 -6px 22px rgba(59, 7, 100, 0.1);
   padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
 }
 
@@ -708,7 +758,7 @@ body.security-curtain-active #exam-workspace {
   position: fixed;
   inset: 0;
   z-index: 80;
-  background: rgba(30, 16, 53, 0.55);
+  background: rgba(36, 10, 64, 0.6);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -720,10 +770,10 @@ body.security-curtain-active #exam-workspace {
   max-height: 80vh;
   overflow-y: auto;
   background: #ffffff;
-  border-top: 3px solid var(--gold-primary);
-  border-radius: 20px 20px 0 0;
+  border-top: 4px solid var(--gold-bright);
+  border-radius: 22px 22px 0 0;
   padding: 18px 16px calc(24px + env(safe-area-inset-bottom, 0px));
-  box-shadow: 0 -12px 36px rgba(59, 7, 100, 0.2);
+  box-shadow: 0 -14px 40px rgba(59, 7, 100, 0.25);
 }
 
 .palette-grid {
@@ -736,43 +786,43 @@ body.security-curtain-active #exam-workspace {
 .palette-cell {
   height: 42px;
   border-radius: 10px;
-  border: 1.5px solid rgba(91, 33, 182, 0.18);
-  background: var(--bg-surface-soft);
+  border: 1.5px solid rgba(91, 33, 182, 0.2);
+  background: #ffffff;
   color: var(--text-secondary);
-  font-weight: 700;
+  font-weight: 800;
   font-size: 13.5px;
   cursor: pointer;
 }
 
 .palette-cell.answered {
-  background: var(--purple-primary);
-  border-color: var(--purple-deep);
+  background: linear-gradient(135deg, var(--purple-royal), var(--purple-deep));
+  border-color: var(--gold-gleam);
   color: #ffffff;
 }
 
 .palette-cell.flagged {
-  background: var(--bg-gold-tint);
-  border-color: var(--gold-primary);
-  color: var(--gold-deep);
+  background: linear-gradient(135deg, #fef3c7, #fbbf24);
+  border-color: var(--gold-rich);
+  color: #2e074f;
 }
 
 .palette-cell.current {
-  outline: 2.5px solid var(--gold-bright);
+  outline: 2.5px solid var(--gold-primary);
   outline-offset: 1px;
 }
 
 /* ==========================================================================
-   20-Second Security Warning Modal (Inside Dark Opaque #security-curtain)
+   20-Second Security Warning Modal
    ========================================================================== */
 
 .warning-card {
   width: 100%;
   max-width: 430px;
   background: #ffffff;
-  border: 3px solid var(--gold-bright);
+  border: 3px solid var(--gold-gleam);
   border-radius: 22px;
   padding: 24px 20px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
   color: var(--text-primary);
 }
 
@@ -781,7 +831,7 @@ body.security-curtain-active #exam-workspace {
   padding: 6px 14px;
   border-radius: 999px;
   background: #fef2f2;
-  border: 1px solid #ef4444;
+  border: 1.5px solid #ef4444;
   color: #b91c1c;
   font-size: 12px;
   font-weight: 800;
@@ -790,11 +840,11 @@ body.security-curtain-active #exam-workspace {
 }
 
 .countdown-ring {
-  width: 108px;
-  height: 108px;
+  width: 110px;
+  height: 110px;
   margin: 16px auto;
   border-radius: 50%;
-  background: linear-gradient(135deg, #faf5ff, #fffbeb);
+  background: linear-gradient(135deg, #fffbeb, #fef3c7);
   border: 4px solid #dc2626;
   display: flex;
   flex-direction: column;
@@ -814,7 +864,7 @@ body.security-curtain-active #exam-workspace {
 .countdown-ring span {
   font-size: 10.5px;
   text-transform: uppercase;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.5px;
   color: #b91c1c;
   margin-top: 3px;
@@ -825,13 +875,13 @@ body.security-curtain-active #exam-workspace {
    ========================================================================== */
 
 .score-circle {
-  width: 136px;
-  height: 136px;
+  width: 140px;
+  height: 140px;
   margin: 8px auto 16px;
   border-radius: 50%;
-  background: radial-gradient(circle, #fffbeb 0%, #f3ecff 100%);
+  background: radial-gradient(circle, #ffffff 0%, #fef3c7 75%, #fde68a 100%);
   border: 4px solid var(--gold-primary);
-  box-shadow: 0 8px 24px rgba(217, 119, 6, 0.2);
+  box-shadow: 0 10px 28px rgba(217, 119, 6, 0.25), 0 0 0 5px rgba(91, 33, 182, 0.08);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -847,21 +897,21 @@ body.security-curtain-active #exam-workspace {
 
 .score-circle span {
   font-size: 12px;
-  font-weight: 700;
-  color: var(--gold-deep);
+  font-weight: 800;
+  color: var(--gold-rich);
 }
 
 .cert-banner {
   padding: 16px;
   border-radius: var(--radius-md);
-  background: linear-gradient(135deg, #faf5ff 0%, #fffbeb 100%);
-  border: 1.5px solid var(--gold-primary);
+  background: linear-gradient(135deg, #fffdf7 0%, #fef3c7 100%);
+  border: 2px solid var(--gold-bright);
   margin-top: 16px;
 }
 
 .cert-banner.pending {
-  background: var(--bg-gold-tint);
-  border-color: var(--gold-bright);
+  background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
+  border-color: var(--gold-gleam);
 }
 
 /* ==========================================================================
@@ -872,25 +922,25 @@ body.security-curtain-active #exam-workspace {
   padding: 12px 14px;
   border-radius: var(--radius-sm);
   font-size: 13.5px;
-  font-weight: 500;
+  font-weight: 600;
   margin-bottom: 14px;
 }
 
 .alert-error {
   background: var(--status-bad-bg);
-  border: 1px solid var(--status-bad-border);
+  border: 1.5px solid var(--status-bad-border);
   color: var(--status-bad-text);
 }
 
 .alert-success {
   background: var(--status-ok-bg);
-  border: 1px solid var(--status-ok-border);
+  border: 1.5px solid var(--status-ok-border);
   color: var(--status-ok-text);
 }
 
 .alert-info {
-  background: var(--bg-purple-tint);
-  border: 1px solid rgba(91, 33, 182, 0.25);
+  background: linear-gradient(135deg, #fffbeb 0%, #f5f0ff 100%);
+  border: 1.5px solid var(--gold-border);
   color: var(--purple-deep);
 }
 
@@ -913,17 +963,17 @@ body.security-curtain-active #exam-workspace {
 
 .stat-box {
   background: #ffffff;
-  border: 1px solid var(--purple-border);
-  border-top: 3px solid var(--gold-primary);
+  border: 1.5px solid var(--gold-border);
+  border-top: 4px solid var(--gold-bright);
   border-radius: var(--radius-md);
   padding: 14px;
-  box-shadow: 0 4px 14px rgba(59, 7, 100, 0.05);
+  box-shadow: 0 6px 16px rgba(76, 29, 149, 0.06);
 }
 
 .stat-box .label {
   font-size: 11px;
-  font-weight: 700;
-  color: var(--text-muted);
+  font-weight: 800;
+  color: var(--gold-rich);
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
@@ -946,26 +996,26 @@ body.security-curtain-active #exam-workspace {
 .tab-btn {
   padding: 9px 16px;
   border-radius: 999px;
-  border: 1.5px solid var(--purple-border);
+  border: 1.5px solid var(--gold-border);
   background: #ffffff;
   color: var(--purple-deep);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 800;
   white-space: nowrap;
   cursor: pointer;
 }
 
 .tab-btn.active {
-  background: linear-gradient(135deg, var(--purple-primary), var(--purple-deep));
-  border-color: var(--gold-bright);
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(91, 33, 182, 0.22);
+  background: linear-gradient(135deg, var(--purple-royal), var(--purple-deep));
+  border-color: var(--gold-gleam);
+  color: var(--gold-pale);
+  box-shadow: 0 4px 14px rgba(91, 33, 182, 0.25);
 }
 
 .table-wrap {
   width: 100%;
   overflow-x: auto;
-  border: 1px solid var(--purple-border);
+  border: 1.5px solid var(--gold-border);
   border-radius: var(--radius-md);
   background: #ffffff;
 }
@@ -981,12 +1031,12 @@ body.security-curtain-active #exam-workspace {
 .data-table td {
   padding: 11px 12px;
   text-align: left;
-  border-bottom: 1px solid rgba(91, 33, 182, 0.1);
+  border-bottom: 1px solid rgba(217, 119, 6, 0.18);
   vertical-align: middle;
 }
 
 .data-table th {
-  background: var(--bg-purple-tint);
+  background: linear-gradient(90deg, #fef3c7 0%, #f5f0ff 100%);
   color: var(--purple-deep);
   font-weight: 800;
   font-size: 11.5px;
@@ -995,7 +1045,7 @@ body.security-curtain-active #exam-workspace {
 }
 
 .data-table tr:hover td {
-  background: var(--bg-surface-soft);
+  background: #fffdf7;
 }
 
 .status-tag {
@@ -1003,7 +1053,7 @@ body.security-curtain-active #exam-workspace {
   padding: 3px 9px;
   border-radius: 999px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .status-tag.ok {
@@ -1025,8 +1075,8 @@ body.security-curtain-active #exam-workspace {
 }
 
 .code-block {
-  background: #1e1035;
-  border: 1px solid var(--gold-border);
+  background: #240a40;
+  border: 1.5px solid var(--gold-gleam);
   border-radius: var(--radius-sm);
   padding: 14px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -1041,7 +1091,7 @@ body.security-curtain-active #exam-workspace {
   position: fixed;
   inset: 0;
   z-index: 120;
-  background: rgba(30, 16, 53, 0.62);
+  background: rgba(36, 10, 64, 0.65);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1054,11 +1104,11 @@ body.security-curtain-active #exam-workspace {
   max-height: 88vh;
   overflow-y: auto;
   background: #ffffff;
-  border: 1.5px solid var(--purple-border);
-  border-top: 4px solid var(--gold-primary);
+  border: 2px solid var(--gold-gleam);
+  border-top: 5px solid var(--purple-primary);
   border-radius: var(--radius-lg);
   padding: 22px 20px;
-  box-shadow: 0 24px 56px rgba(30, 16, 53, 0.28);
+  box-shadow: 0 24px 56px rgba(36, 10, 64, 0.32);
 }
 
 .switch-row {
@@ -1067,8 +1117,8 @@ body.security-curtain-active #exam-workspace {
   justify-content: space-between;
   gap: 14px;
   padding: 12px 14px;
-  background: var(--bg-surface-soft);
-  border: 1px solid var(--purple-border);
+  background: linear-gradient(90deg, #fffdf7 0%, #faf7ff 100%);
+  border: 1px solid var(--gold-border);
   border-radius: var(--radius-sm);
 }
 

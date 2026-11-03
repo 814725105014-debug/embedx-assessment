@@ -1,6 +1,6 @@
 /**
  * Canvas Shield — Anti Circle-to-Search & Anti-Scraping Question Renderer
- * Styled in Crisp White, Royal Purple & Metallic Gold
+ * Signature Theme: Radiant Metallic Gold · Crisp Pure White · Royal Purple
  */
 
 export function renderProtectedQuestionCanvas(canvas, options) {
@@ -34,7 +34,7 @@ export function renderProtectedQuestionCanvas(canvas, options) {
   const dpr = Math.min(window.devicePixelRatio || 1, 3);
 
   const padX = parentWidth < 400 ? 16 : 22;
-  const padTop = 20;
+  const padTop = 21;
   const padBottom = 20;
   const maxTextWidth = parentWidth - padX * 2;
 
@@ -45,7 +45,6 @@ export function renderProtectedQuestionCanvas(canvas, options) {
   const ctx = canvas.getContext('2d');
   ctx.font = `700 ${fontSize}px ${fontStack}`;
 
-  // Wrap question text cleanly by words
   const words = String(questionText || '').split(/\s+/).filter(Boolean);
   const lines = [];
   let currentLine = '';
@@ -66,7 +65,7 @@ export function renderProtectedQuestionCanvas(canvas, options) {
   const badgeHeight = 26;
   const gapAfterBadge = 13;
   const totalHeight = Math.max(
-    114,
+    116,
     padTop + badgeHeight + gapAfterBadge + lines.length * lineHeight + padBottom
   );
 
@@ -77,27 +76,30 @@ export function renderProtectedQuestionCanvas(canvas, options) {
 
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  // Crisp White & Subtle Pearl-Purple Card Surface
+  // Pure Crisp White to Soft Golden-Ivory Card Surface
   const grad = ctx.createLinearGradient(0, 0, parentWidth, totalHeight);
   grad.addColorStop(0, '#ffffff');
-  grad.addColorStop(1, '#faf6ff');
+  grad.addColorStop(0.75, '#fffdf7');
+  grad.addColorStop(1, '#faf5ff');
   ctx.fillStyle = grad;
-  roundRect(ctx, 0, 0, parentWidth, totalHeight, 14);
+  roundRect(ctx, 0, 0, parentWidth, totalHeight, 15);
   ctx.fill();
 
-  // Top Metallic Gold Accent Strip
+  // Top Metallic Gold & Royal Purple Crown Strip
   ctx.save();
   ctx.beginPath();
-  roundRect(ctx, 0, 0, parentWidth, totalHeight, 14);
+  roundRect(ctx, 0, 0, parentWidth, totalHeight, 15);
   ctx.clip();
   const topGold = ctx.createLinearGradient(0, 0, parentWidth, 0);
-  topGold.addColorStop(0, '#5b21b6');
-  topGold.addColorStop(0.5, '#d97706');
-  topGold.addColorStop(1, '#f59e0b');
+  topGold.addColorStop(0, '#f59e0b');
+  topGold.addColorStop(0.28, '#fbbf24');
+  topGold.addColorStop(0.5, '#6d28d9');
+  topGold.addColorStop(0.72, '#fbbf24');
+  topGold.addColorStop(1, '#d97706');
   ctx.fillStyle = topGold;
-  ctx.fillRect(0, 0, parentWidth, 4);
+  ctx.fillRect(0, 0, parentWidth, 5);
 
-  // Diagonal Student Watermark (Purple-Gold micro-stamp)
+  // Diagonal Student Watermark
   if (watermarkText) {
     ctx.translate(parentWidth / 2, totalHeight / 2);
     ctx.rotate(-0.22);
@@ -113,36 +115,39 @@ export function renderProtectedQuestionCanvas(canvas, options) {
   }
   ctx.restore();
 
-  // Card Border (Gold/Purple)
-  ctx.strokeStyle = 'rgba(217, 119, 6, 0.36)';
-  ctx.lineWidth = 1.25;
-  roundRect(ctx, 0.6, 0.6, parentWidth - 1.2, totalHeight - 1.2, 14);
+  // Golden Card Border
+  ctx.strokeStyle = 'rgba(217, 119, 6, 0.52)';
+  ctx.lineWidth = 1.6;
+  roundRect(ctx, 0.8, 0.8, parentWidth - 1.6, totalHeight - 1.6, 15);
   ctx.stroke();
 
-  // Category & Question Number Pill (Royal Purple + Gold)
+  // Golden Category & Question Number Pill with Royal Purple Ink
   const catLabel = category
     ? `Q${questionNumber}/${totalQuestions} · ${category}`
     : `Question ${questionNumber} of ${totalQuestions}`;
   ctx.font = `800 11.5px ${fontStack}`;
   const pillTextWidth = Math.min(ctx.measureText(catLabel).width + 22, maxTextWidth);
 
-  ctx.fillStyle = '#f3ecff';
+  const pillGrad = ctx.createLinearGradient(padX, padTop, padX + pillTextWidth, padTop + 24);
+  pillGrad.addColorStop(0, '#fef3c7');
+  pillGrad.addColorStop(1, '#fde68a');
+  ctx.fillStyle = pillGrad;
   roundRect(ctx, padX, padTop, pillTextWidth, 24, 999);
   ctx.fill();
 
-  ctx.strokeStyle = 'rgba(217, 119, 6, 0.42)';
+  ctx.strokeStyle = '#d97706';
   ctx.lineWidth = 1;
   roundRect(ctx, padX, padTop, pillTextWidth, 24, 999);
   ctx.stroke();
 
-  ctx.fillStyle = '#4c1d95';
+  ctx.fillStyle = '#3b0764';
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'left';
   ctx.fillText(catLabel, padX + 11, padTop + 12.5);
 
-  // Subtle anti-OCR micro-pattern
+  // Subtle anti-OCR golden micro-pattern
   ctx.save();
-  ctx.strokeStyle = 'rgba(217, 119, 6, 0.05)';
+  ctx.strokeStyle = 'rgba(217, 119, 6, 0.055)';
   ctx.lineWidth = 0.75;
   for (let y = padTop + badgeHeight + 8; y < totalHeight - 10; y += 13) {
     ctx.beginPath();
@@ -152,9 +157,9 @@ export function renderProtectedQuestionCanvas(canvas, options) {
   }
   ctx.restore();
 
-  // Render Question Text in Deep Royal Ink
+  // Render Question Text in Deep Royal Purple Ink
   ctx.font = `700 ${fontSize}px ${fontStack}`;
-  ctx.fillStyle = '#1e1035';
+  ctx.fillStyle = '#240a40';
   ctx.textBaseline = 'top';
   const startY = padTop + badgeHeight + gapAfterBadge;
 
