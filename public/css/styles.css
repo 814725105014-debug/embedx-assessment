@@ -164,20 +164,41 @@ body.security-curtain-active #exam-workspace {
 }
 
 .brand-emblem {
-  width: 42px;
-  height: 42px;
-  border-radius: 11px;
-  background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
-  border: 1px solid rgba(255, 255, 255, 0.45);
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 2px solid #fbbf24;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-weight: 900;
-  font-size: 15px;
-  letter-spacing: -0.5px;
-  color: #2e074f;
-  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);
+  overflow: hidden;
+  padding: 2px;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
+}
+
+.brand-emblem img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.club-logo-showcase {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto 14px;
+}
+
+.club-logo-showcase img {
+  width: 148px;
+  height: auto;
+  border-radius: 14px;
+  border: 1.5px solid rgba(217, 119, 6, 0.32);
+  box-shadow: 0 6px 20px rgba(59, 7, 100, 0.08);
+  background: #ffffff;
+  padding: 6px;
 }
 
 .brand-titles {

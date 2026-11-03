@@ -65,10 +65,22 @@ async function enterDashboard(session) {
 
   const backend = await getBackendStatus();
   const modeLabel =
-    backend.mode === 'firebase'
+    backend.mode === 'firebase' && backend.firestoreCloudHealthy
       ? `Cloud Firestore Live (${backend.projectId})`
-      : 'Preview / Local Sync Mode (Paste Firebase Config in Tab 4 for Cloud Mode)';
+      : backend.mode === 'firebase'
+      ? `Connected to ${backend.projectId} (Enable Firestore & Email Auth in Console)`
+      : 'Preview / Local Sync Mode';
   document.getElementById('admin-backend-badge').textContent = `${session.email} · ${modeLabel}`;
+
+  const setupAlert = document.getElementById('firebase-console-setup-alert');
+  if (setupAlert) {
+    setupAlert.classList.toggle(
+      'hidden',
+      backend.mode === 'firebase' &&
+        backend.firestoreCloudHealthy &&
+        session.mode !== 'firebase_pending_console_toggle'
+    );
+  }
 
   settings = await loadPortalSettings();
   questions = await loadQuestions();
@@ -78,9 +90,16 @@ async function enterDashboard(session) {
   loadWebhookScriptPreview();
 
   if (unsubData) unsubData();
-  unsubData = await subscribeToAdminData(({ submissions, activeSessions }) => {
+  unsubData = await subscribeToAdminData(({ submissions, activeSessions, firestoreCloudHealthy }) => {
     allSubmissions = submissions || [];
     liveSessions = activeSessions || [];
+    const setupAlertEl = document.getElementById('firebase-console-setup-alert');
+    if (setupAlertEl) {
+      setupAlertEl.classList.toggle(
+        'hidden',
+        Boolean(firestoreCloudHealthy) && session.mode !== 'firebase_pending_console_toggle'
+      );
+    }
     renderKPIs();
     renderLiveSessions();
     renderSubmissionsTable();

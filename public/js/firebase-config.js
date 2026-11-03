@@ -1,25 +1,20 @@
 /**
- * Firebase & CAMS Configuration
- *
- * HOW TO ACTIVATE LIVE FIREBASE CLOUD MODE:
- * 1. Create a project at https://console.firebase.google.com
- * 2. Enable Authentication -> Email/Password
- * 3. Enable Cloud Firestore -> Start in production mode (deploy firestore.rules)
- * 4. Add a Web App (</>) in Project Settings and paste your firebaseConfig values below
- *    (or paste them directly inside the Admin Dashboard -> Settings -> Firebase Config!)
+ * Firebase & CAMS Configuration — Connected to `embedx-assessment`
+ * EMBEDX | Embedded Systems & Automation Club · Dept. of EEE · SRM TRP Engineering College
  */
 
 export const FIREBASE_CONFIG = {
-  apiKey: "REPLACE_WITH_FIREBASE_API_KEY",
-  authDomain: "REPLACE_WITH_PROJECT_ID.firebaseapp.com",
-  projectId: "REPLACE_WITH_PROJECT_ID",
-  storageBucket: "REPLACE_WITH_PROJECT_ID.firebasestorage.app",
-  messagingSenderId: "REPLACE_WITH_SENDER_ID",
-  appId: "REPLACE_WITH_APP_ID"
+  apiKey: "AIzaSyACO6JtEgvD_n5m5haPV-0y91Z76UI9C18",
+  authDomain: "embedx-assessment.firebaseapp.com",
+  projectId: "embedx-assessment",
+  storageBucket: "embedx-assessment.firebasestorage.app",
+  messagingSenderId: "803481654330",
+  appId: "1:803481654330:web:3bd07cd5cf42c4de1e5103",
+  measurementId: "G-S94VH65XXC"
 };
 
 /**
- * Checks whether Firebase config has been populated (either in this file or saved via Admin UI).
+ * Checks whether an admin runtime override exists, otherwise returns live FIREBASE_CONFIG.
  */
 export function getEffectiveFirebaseConfig() {
   try {
@@ -52,7 +47,7 @@ export function isFirebaseConfigured(cfg = getEffectiveFirebaseConfig()) {
  */
 export const ADMIN_ACCESS = Object.freeze({
   allowedEmail: '814725105014@trp.srmtrichy.edu.in',
-  // SHA-256 of "Hari@EEE29" for local/preview gate verification; Firebase Auth enforces server-side in cloud mode
+  // SHA-256 of "Hari@EEE29"
   passwordSha256: '02ec78533da916a8a24392b408d3a32aa4a5d766bf5632b40f08a5d230c4f920'
 });
 
@@ -77,7 +72,7 @@ export const DEFAULT_PORTAL_SETTINGS = {
   canvasAntiSearch: true,
   watermarkRegNo: true,
   allowDuplicateEmail: false,
-  examAccessCode: '', // optional live hall PIN if admin sets one
+  examAccessCode: '',
   // Student post-submit display: 'score_only' | 'receipt_only' | 'full_answers'
   resultVisibility: 'score_only',
   // Certificate policy: 'all_completions' | 'min_score' | 'manual_only'

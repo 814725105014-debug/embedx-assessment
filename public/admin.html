@@ -6,6 +6,8 @@
   <meta name="theme-color" content="#3b0764" />
   <meta name="robots" content="noindex, nofollow" />
   <title>Coordinator Admin Console · EMBEDX EEE</title>
+  <link rel="icon" type="image/png" href="/assets/embedx-icon.png" />
+  <link rel="apple-touch-icon" href="/assets/embedx-icon.png" />
   <link rel="stylesheet" href="/css/styles.css" />
 </head>
 <body>
@@ -17,7 +19,9 @@
   <main id="admin-login-view" class="app-shell">
     <header class="brand-bar">
       <div class="brand-id">
-        <div class="brand-emblem">EX</div>
+        <div class="brand-emblem">
+          <img src="/assets/embedx-icon.png" alt="EMBEDX" />
+        </div>
         <div class="brand-titles">
           <h1>EMBEDX Coordinator Login</h1>
           <p>Dept. of EEE · SRM TRP Engineering College</p>
@@ -26,11 +30,16 @@
     </header>
 
     <section class="card">
-      <div class="hero-chip">Restricted Admin Portal</div>
-      <h2 class="card-title">Administrator Sign In</h2>
-      <p class="card-subtitle">
-        Dedicated sign-in for authorized EMBEDX Quiz Control, Live Anti-Cheat Proctoring &amp; CAMS Certificate Management.
-      </p>
+      <div class="club-logo-showcase">
+        <img src="/assets/embedx-logo.png" alt="EMBEDX — Embedded Systems and Automation · EEE" />
+      </div>
+      <div style="text-align: center;">
+        <div class="hero-chip">Restricted Admin Portal</div>
+        <h2 class="card-title">Administrator Sign In</h2>
+        <p class="card-subtitle">
+          Dedicated sign-in for authorized EMBEDX Quiz Control, Live Anti-Cheat Proctoring &amp; CAMS Certificate Management.
+        </p>
+      </div>
 
       <div id="admin-login-error" class="alert alert-error hidden"></div>
 
@@ -84,7 +93,9 @@
     <!-- Top Admin Bar -->
     <header class="brand-bar" style="flex-wrap: wrap;">
       <div class="brand-id">
-        <div class="brand-emblem">EX</div>
+        <div class="brand-emblem">
+          <img src="/assets/embedx-icon.png" alt="EMBEDX" />
+        </div>
         <div class="brand-titles">
           <h1>EMBEDX Coordinator Control Center</h1>
           <p id="admin-backend-badge">Signed in as 814725105014@trp.srmtrichy.edu.in</p>
@@ -96,6 +107,12 @@
         <button type="button" id="btn-admin-logout" class="btn btn-gold btn-sm">Sign Out</button>
       </div>
     </header>
+
+    <div id="firebase-console-setup-alert" class="alert alert-info hidden">
+      <strong>Finish 2 Quick Switches in Firebase Console (<code>embedx-assessment</code>):</strong><br />
+      1. Enable Email/Password Sign-In: <a href="https://console.firebase.google.com/project/embedx-assessment/authentication/providers" target="_blank" rel="noopener" style="color:#5b21b6; font-weight:700;">Open Firebase Auth Providers ↗</a><br />
+      2. Create Cloud Firestore Database: <a href="https://console.firebase.google.com/project/embedx-assessment/firestore" target="_blank" rel="noopener" style="color:#5b21b6; font-weight:700;">Open Cloud Firestore ↗</a>
+    </div>
 
     <div id="admin-toast" class="alert alert-success hidden"></div>
 

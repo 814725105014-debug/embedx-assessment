@@ -1,12 +1,9 @@
 /**
- * Unified Data & Authentication Service (Cloud Firestore + Seamless Local Preview Store)
+ * Unified Data & Authentication Service — Connected to Firebase (`embedx-assessment`)
  *
- * - When Firebase API keys are configured in firebase-config.js (or via Admin UI):
- *   Uses Firebase Authentication (strictly locked to 814725105014@trp.srmtrichy.edu.in)
- *   and Cloud Firestore with real-time onSnapshot listeners.
- * - Before Firebase API keys are pasted (Local / Sandbox Preview Mode):
- *   Uses persistent LocalStorage + BroadcastChannel('embedx_live_sync') so Student &
- *   Admin tabs communicate live in real time out of the box!
+ * Uses Firebase App + Analytics + Auth + Cloud Firestore, with resilient fallback
+ * to LocalStorage + BroadcastChannel if Cloud Firestore or Email/Password Auth
+ * has not yet been toggled ON in the Firebase Console!
  */
 
 import {
@@ -27,20 +24,19 @@ const STORAGE_KEYS = {
 
 let firebaseCtx = null;
 let initPromise = null;
+let firestoreCloudHealthy = true;
 const broadcast = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('embedx_live_sync') : null;
 
 function notifyLocalChange(topic) {
   if (broadcast) {
     try {
       broadcast.postMessage({ topic, at: Date.now() });
-    } catch (_) {
-      // ignore
-    }
+    } catch (_) {}
   }
 }
 
 /* -------------------------------------------------------------------------- */
-/* Pure-JS + WebCrypto SHA-256 (works on both HTTPS and plain HTTP LAN IPs)   */
+/* Pure-JS + WebCrypto SHA-256                                                */
 /* -------------------------------------------------------------------------- */
 
 export async function sha256Hex(message) {
@@ -52,9 +48,7 @@ export async function sha256Hex(message) {
       return Array.from(new Uint8Array(hashBuffer))
         .map((b) => b.toString(16).padStart(2, '0'))
         .join('');
-    } catch (_) {
-      // fall through to pure-JS fallback
-    }
+    } catch (_) {}
   }
   return sha256Fallback(text);
 }
@@ -64,7 +58,6 @@ function sha256Fallback(ascii) {
   const mathPow = Math.pow;
   const maxWord = mathPow(2, 32);
   let result = '';
-  const words = [];
   const bytes = new TextEncoder().encode(ascii);
   const asciiBitLength = bytes.length * 8;
 
@@ -130,7 +123,7 @@ function sha256Fallback(ascii) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Firebase Lazy Initialization                                               */
+/* Firebase Initialization (App + Analytics + Auth + Firestore)               */
 /* -------------------------------------------------------------------------- */
 
 export async function initBackend() {
@@ -150,6 +143,14 @@ export async function initBackend() {
       const app = appMod.getApps().length ? appMod.getApp() : appMod.initializeApp(cfg);
       const auth = authMod.getAuth(app);
       const db = fsMod.getFirestore(app);
+
+      // Initialize Firebase Analytics non-blockingly when measurementId is present
+      if (cfg.measurementId) {
+        import('https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js')
+          .then((anMod) => anMod.isSupported().then((ok) => ok && anMod.getAnalytics(app)))
+          .catch(() => {});
+      }
+
       firebaseCtx = { mode: 'firebase', app, auth, db, authMod, fsMod, cfg };
       return firebaseCtx;
     } catch (err) {
@@ -166,6 +167,7 @@ export async function getBackendStatus() {
   return {
     mode: ctx.mode,
     projectId: ctx.cfg?.projectId || null,
+    firestoreCloudHealthy,
     error: ctx.error || null
   };
 }
@@ -184,9 +186,9 @@ function getLocalSettings() {
 
 export async function loadPortalSettings() {
   const ctx = await initBackend();
-  if (ctx.mode === 'firebase') {
+  if (ctx.mode === 'firebase' && firestoreCloudHealthy) {
     try {
-      const { doc, getDoc, setDoc } = ctx.fsMod;
+      const { doc, getDoc } = ctx.fsMod;
       const ref = doc(ctx.db, 'portal_config', 'main');
       const snap = await getDoc(ref);
       if (snap.exists()) {
@@ -194,10 +196,10 @@ export async function loadPortalSettings() {
         localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(merged));
         return merged;
       }
-      // Return defaults if doc doesn't exist yet
       return getLocalSettings();
     } catch (err) {
-      console.warn('Firestore settings read fallback:', err);
+      firestoreCloudHealthy = false;
+      console.warn('Firestore not enabled yet in Firebase Console; using resilient fallback:', err?.message);
       return getLocalSettings();
     }
   }
@@ -216,8 +218,14 @@ export async function savePortalSettings(partialSettings) {
 
   const ctx = await initBackend();
   if (ctx.mode === 'firebase') {
-    const { doc, setDoc } = ctx.fsMod;
-    await setDoc(doc(ctx.db, 'portal_config', 'main'), updated, { merge: true });
+    try {
+      const { doc, setDoc } = ctx.fsMod;
+      await setDoc(doc(ctx.db, 'portal_config', 'main'), updated, { merge: true });
+      firestoreCloudHealthy = true;
+    } catch (err) {
+      firestoreCloudHealthy = false;
+      console.warn('Saved locally (enable Cloud Firestore in Firebase Console for cloud sync):', err?.message);
+    }
   }
   return updated;
 }
@@ -239,7 +247,7 @@ function getLocalQuestions() {
 
 export async function loadQuestions() {
   const ctx = await initBackend();
-  if (ctx.mode === 'firebase') {
+  if (ctx.mode === 'firebase' && firestoreCloudHealthy) {
     try {
       const { doc, getDoc } = ctx.fsMod;
       const snap = await getDoc(doc(ctx.db, 'portal_config', 'questions'));
@@ -248,7 +256,7 @@ export async function loadQuestions() {
         return snap.data().items;
       }
     } catch (err) {
-      console.warn('Firestore questions read fallback:', err);
+      firestoreCloudHealthy = false;
     }
   }
   return getLocalQuestions();
@@ -260,11 +268,16 @@ export async function saveQuestions(questionsArray) {
 
   const ctx = await initBackend();
   if (ctx.mode === 'firebase') {
-    const { doc, setDoc } = ctx.fsMod;
-    await setDoc(doc(ctx.db, 'portal_config', 'questions'), {
-      items: questionsArray,
-      updatedAt: new Date().toISOString()
-    });
+    try {
+      const { doc, setDoc } = ctx.fsMod;
+      await setDoc(doc(ctx.db, 'portal_config', 'questions'), {
+        items: questionsArray,
+        updatedAt: new Date().toISOString()
+      });
+      firestoreCloudHealthy = true;
+    } catch (err) {
+      firestoreCloudHealthy = false;
+    }
   }
   return questionsArray;
 }
@@ -288,7 +301,7 @@ export async function checkExistingSubmission(email, registerNumber) {
   const { cleanEmail, cleanReg, docId } = normalizeStudentKey(email, registerNumber);
   const ctx = await initBackend();
 
-  if (ctx.mode === 'firebase') {
+  if (ctx.mode === 'firebase' && firestoreCloudHealthy) {
     try {
       const { doc, getDoc } = ctx.fsMod;
       const byEmail = await getDoc(doc(ctx.db, 'submissions', docId));
@@ -306,7 +319,7 @@ export async function checkExistingSubmission(email, registerNumber) {
       }
       return null;
     } catch (_) {
-      // fall back to local check
+      firestoreCloudHealthy = false;
     }
   }
 
@@ -347,12 +360,12 @@ export async function upsertActiveSession(sessionData) {
   notifyLocalChange('sessions');
 
   const ctx = await initBackend();
-  if (ctx.mode === 'firebase') {
+  if (ctx.mode === 'firebase' && firestoreCloudHealthy) {
     try {
       const { doc, setDoc } = ctx.fsMod;
       await setDoc(doc(ctx.db, 'active_sessions', docId), payload, { merge: true });
     } catch (_) {
-      // non-blocking telemetry
+      firestoreCloudHealthy = false;
     }
   }
 }
@@ -365,7 +378,7 @@ export async function removeActiveSession(email, registerNumber) {
   notifyLocalChange('sessions');
 
   const ctx = await initBackend();
-  if (ctx.mode === 'firebase') {
+  if (ctx.mode === 'firebase' && firestoreCloudHealthy) {
     try {
       const { doc, deleteDoc } = ctx.fsMod;
       await deleteDoc(doc(ctx.db, 'active_sessions', docId));
@@ -408,28 +421,30 @@ export async function recordQuizSubmission(submission) {
     submittedAt: submission.submittedAt || new Date().toISOString()
   };
 
-  // Save locally first so data is never lost even offline
   const local = getLocalSubmissions();
   const idx = local.findIndex((item) => item.id === docId);
   if (idx >= 0) local[idx] = record;
   else local.unshift(record);
   saveLocalSubmissions(local);
 
-  // Clean up active live session
   await removeActiveSession(cleanEmail, cleanReg);
 
   const ctx = await initBackend();
   if (ctx.mode === 'firebase') {
-    const { doc, setDoc } = ctx.fsMod;
-    await setDoc(doc(ctx.db, 'submissions', docId), record);
-    if (cleanReg) {
-      try {
+    try {
+      const { doc, setDoc } = ctx.fsMod;
+      await setDoc(doc(ctx.db, 'submissions', docId), record);
+      firestoreCloudHealthy = true;
+      if (cleanReg) {
         await setDoc(doc(ctx.db, 'reg_locks', cleanReg), {
           submissionId: docId,
           email: cleanEmail,
           createdAt: record.submittedAt
-        });
-      } catch (_) {}
+        }).catch(() => {});
+      }
+    } catch (err) {
+      firestoreCloudHealthy = false;
+      console.warn('Submission saved locally (Firestore pending enablement):', err?.message);
     }
   }
   return record;
@@ -444,13 +459,11 @@ export async function updateSubmissionCertificateStatus(submissionId, certUpdate
   }
 
   const ctx = await initBackend();
-  if (ctx.mode === 'firebase') {
+  if (ctx.mode === 'firebase' && firestoreCloudHealthy) {
     try {
       const { doc, setDoc } = ctx.fsMod;
       await setDoc(doc(ctx.db, 'submissions', submissionId), certUpdate, { merge: true });
-    } catch (err) {
-      console.warn('Could not sync certificate status to Firestore:', err);
-    }
+    } catch (_) {}
   }
 }
 
@@ -460,9 +473,9 @@ export async function allowStudentRetake(submissionId) {
   saveLocalSubmissions(local);
 
   const ctx = await initBackend();
-  if (ctx.mode === 'firebase') {
-    const { doc, getDoc, deleteDoc } = ctx.fsMod;
+  if (ctx.mode === 'firebase' && firestoreCloudHealthy) {
     try {
+      const { doc, getDoc, deleteDoc } = ctx.fsMod;
       const snap = await getDoc(doc(ctx.db, 'submissions', submissionId));
       const regKey =
         (snap.exists() && snap.data().registerNumberNormalized) ||
@@ -470,59 +483,88 @@ export async function allowStudentRetake(submissionId) {
       if (regKey) {
         await deleteDoc(doc(ctx.db, 'reg_locks', regKey)).catch(() => {});
       }
+      await deleteDoc(doc(ctx.db, 'submissions', submissionId));
     } catch (_) {}
-    await deleteDoc(doc(ctx.db, 'submissions', submissionId));
   }
 }
 
 export async function subscribeToAdminData(onData) {
   const ctx = await initBackend();
+  let cloudSubDocs = [];
+  let cloudActiveDocs = [];
+  let cloudConnected = false;
 
-  if (ctx.mode === 'firebase') {
-    const { collection, onSnapshot } = ctx.fsMod;
-    let submissions = [];
-    let activeSessions = [];
-
-    const emit = () => {
-      submissions.sort((a, b) => String(b.submittedAt || '').localeCompare(String(a.submittedAt || '')));
-      onData({ submissions, activeSessions, mode: 'firebase' });
-    };
-
-    const unsub1 = onSnapshot(collection(ctx.db, 'submissions'), (snap) => {
-      submissions = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      emit();
-    });
-    const unsub2 = onSnapshot(collection(ctx.db, 'active_sessions'), (snap) => {
-      activeSessions = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      emit();
-    });
-
-    return () => {
-      unsub1();
-      unsub2();
-    };
-  }
-
-  // Local / Preview Real-Time Subscription via BroadcastChannel + storage event
-  const pushLocal = () => {
-    const submissions = getLocalSubmissions().sort((a, b) =>
+  const emitCombined = () => {
+    const mergedMap = new Map();
+    getLocalSubmissions().forEach((s) => mergedMap.set(s.id, s));
+    cloudSubDocs.forEach((s) => mergedMap.set(s.id, s));
+    const submissions = Array.from(mergedMap.values()).sort((a, b) =>
       String(b.submittedAt || '').localeCompare(String(a.submittedAt || ''))
     );
-    const activeSessions = Object.values(getLocalActiveSessions());
-    onData({ submissions, activeSessions, mode: 'local' });
+
+    const sessMap = new Map();
+    Object.values(getLocalActiveSessions()).forEach((s) => sessMap.set(s.sessionId || s.id, s));
+    cloudActiveDocs.forEach((s) => sessMap.set(s.id, s));
+    const activeSessions = Array.from(sessMap.values());
+
+    onData({
+      submissions,
+      activeSessions,
+      mode: cloudConnected ? 'firebase' : 'local_fallback',
+      firestoreCloudHealthy
+    });
   };
 
-  pushLocal();
-  const onStorage = () => pushLocal();
+  let unsub1 = () => {};
+  let unsub2 = () => {};
+
+  if (ctx.mode === 'firebase') {
+    try {
+      const { collection, onSnapshot } = ctx.fsMod;
+      unsub1 = onSnapshot(
+        collection(ctx.db, 'submissions'),
+        (snap) => {
+          cloudConnected = true;
+          firestoreCloudHealthy = true;
+          cloudSubDocs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          emitCombined();
+        },
+        () => {
+          firestoreCloudHealthy = false;
+          emitCombined();
+        }
+      );
+      unsub2 = onSnapshot(
+        collection(ctx.db, 'active_sessions'),
+        (snap) => {
+          cloudConnected = true;
+          firestoreCloudHealthy = true;
+          cloudActiveDocs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          emitCombined();
+        },
+        () => {
+          firestoreCloudHealthy = false;
+          emitCombined();
+        }
+      );
+    } catch (_) {
+      firestoreCloudHealthy = false;
+    }
+  }
+
+  emitCombined();
+  const onStorage = () => emitCombined();
   window.addEventListener('storage', onStorage);
   let onMsg = null;
   if (broadcast) {
-    onMsg = () => pushLocal();
+    onMsg = () => emitCombined();
     broadcast.addEventListener('message', onMsg);
   }
-  const poll = setInterval(pushLocal, 3000);
+  const poll = setInterval(emitCombined, 3000);
 
   return () => {
+    unsub1();
+    unsub2();
     window.removeEventListener('storage', onStorage);
     if (broadcast && onMsg) broadcast.removeEventListener('message', onMsg);
     clearInterval(poll);
@@ -537,7 +579,6 @@ export async function loginAdmin(emailInput, passwordInput) {
   const normalizedEmail = String(emailInput || '').trim().toLowerCase();
   const expectedEmail = ADMIN_ACCESS.allowedEmail.toLowerCase();
 
-  // Hard gate #1: Reject EVERY email except 814725105014@trp.srmtrichy.edu.in
   if (normalizedEmail !== expectedEmail) {
     throw new Error('Access Denied: This login is restricted exclusively to the authorized EMBEDX Administrator.');
   }
@@ -559,8 +600,9 @@ export async function loginAdmin(emailInput, passwordInput) {
       );
       return { email: expectedEmail, mode: 'firebase' };
     } catch (err) {
-      // Auto-bootstrap the single authorized admin user on first login to a brand-new Firebase project
       const code = String(err?.code || '');
+
+      // Auto-bootstrap admin account on first login once Email/Password Auth is enabled
       if (
         (code === 'auth/user-not-found' || code === 'auth/invalid-credential') &&
         passHash === ADMIN_ACCESS.passwordSha256
@@ -573,17 +615,50 @@ export async function loginAdmin(emailInput, passwordInput) {
           );
           return { email: expectedEmail, mode: 'firebase', bootstrapped: true };
         } catch (createErr) {
-          if (String(createErr?.code || '') === 'auth/email-already-in-use') {
+          const cCode = String(createErr?.code || '');
+          if (cCode === 'auth/email-already-in-use') {
             throw new Error('Invalid administrator password.');
           }
-          throw new Error(createErr?.message || 'Firebase Auth configuration required. Enable Email/Password in Firebase Console.');
+          // If Email/Password sign-in provider hasn't been enabled yet in Firebase Console,
+          // still verify SHA-256 and let the verified Admin into the dashboard!
+          if (
+            (cCode === 'auth/operation-not-allowed' || cCode === 'auth/configuration-not-found') &&
+            passHash === ADMIN_ACCESS.passwordSha256
+          ) {
+            sessionStorage.setItem(
+              STORAGE_KEYS.ADMIN_SESSION,
+              JSON.stringify({
+                email: expectedEmail,
+                loggedInAt: Date.now(),
+                mode: 'firebase_pending_console_toggle'
+              })
+            );
+            return { email: expectedEmail, mode: 'firebase_pending_console_toggle' };
+          }
+          throw new Error(createErr?.message || 'Firebase Auth error.');
         }
       }
+
+      // Handle PASSWORD_LOGIN_DISABLED directly on signInWithEmailAndPassword
+      if (
+        (code === 'auth/operation-not-allowed' || code === 'auth/configuration-not-found') &&
+        passHash === ADMIN_ACCESS.passwordSha256
+      ) {
+        sessionStorage.setItem(
+          STORAGE_KEYS.ADMIN_SESSION,
+          JSON.stringify({
+            email: expectedEmail,
+            loggedInAt: Date.now(),
+            mode: 'firebase_pending_console_toggle'
+          })
+        );
+        return { email: expectedEmail, mode: 'firebase_pending_console_toggle' };
+      }
+
       throw new Error('Invalid administrator credentials.');
     }
   }
 
-  // Local / Preview Mode Gate
   if (passHash !== ADMIN_ACCESS.passwordSha256) {
     throw new Error('Invalid administrator password.');
   }
