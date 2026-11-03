@@ -91,6 +91,8 @@ function doPost(e) {
       const p = body.participant || {};
       const email = String(p.email || '').trim().toLowerCase();
       const name = String(p.name || '').trim();
+      const phone = String(p.phone || '').trim();
+      const year = String(p.year || '').trim();
       const workshop = String(
         p.workshop || 'Basics of Embedded Systems and Embedded Programming Language'
       ).trim();
@@ -119,6 +121,10 @@ function doPost(e) {
         const statusCol = map[normalizeKey_(CAMS.HEADERS.MAIL_STATUS)];
         const certIdCol = map[normalizeKey_(CAMS.HEADERS.CERTIFICATE_ID)];
         const pdfUrlCol = map[normalizeKey_(CAMS.HEADERS.PDF_URL)];
+        const mobileCol = map[normalizeKey_('Mobile Number')] ||
+          map[normalizeKey_('Phone')] || map[normalizeKey_('Mobile')];
+        const yearCol = map[normalizeKey_('Year of Study')] ||
+          map[normalizeKey_('Year')] || map[normalizeKey_('Study Year')];
 
         if (emailCol && sheet.getLastRow() >= 2) {
           const allRows = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getDisplayValues();
@@ -164,6 +170,8 @@ function doPost(e) {
           putByCandidates(['Timestamp'], now);
           putByCandidates([getSetting_('Email Field Header'), 'Email Address', 'Email'], email);
           putByCandidates([getSetting_('Name Field Header'), 'Participant Full Name', 'Full Name', 'Name'], name);
+          putByCandidates(['Mobile Number', 'Phone', 'Mobile', 'Phone Number'], phone);
+          putByCandidates(['Year of Study', 'Year', 'Study Year'], year);
           putByCandidates(['Register Number', 'Roll Number', 'Reg No'], p.registerNumber || '');
           putByCandidates([getSetting_('Course Name Field Header'), 'Workshop'], workshop);
           putByCandidates(['Department', 'Dept'], p.department || '');
@@ -176,6 +184,13 @@ function doPost(e) {
           sheet.appendRow(newRowValues);
           SpreadsheetApp.flush();
           targetRow = sheet.getLastRow();
+        }
+
+        if (targetRow && mobileCol && phone) {
+          sheet.getRange(targetRow, mobileCol).setValue(phone);
+        }
+        if (targetRow && yearCol && year) {
+          sheet.getRange(targetRow, yearCol).setValue(year);
         }
       } finally {
         lock.releaseLock();
