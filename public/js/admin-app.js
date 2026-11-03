@@ -308,7 +308,7 @@ function populateSettingsForms() {
   const openBtn = document.getElementById('btn-quick-toggle-quiz');
   if (settings.quizOpen) {
     openBtn.textContent = '● Quiz Status: OPEN';
-    openBtn.className = 'btn btn-emerald btn-sm';
+    openBtn.className = 'btn btn-gold btn-sm';
   } else {
     openBtn.textContent = '⏸ Quiz Status: PAUSED';
     openBtn.className = 'btn btn-danger btn-sm';
@@ -388,16 +388,16 @@ function renderLiveSessions() {
     const div = document.createElement('div');
     div.style.padding = '12px';
     div.style.borderRadius = '10px';
-    div.style.background = 'rgba(15, 23, 42, 0.75)';
+    div.style.background = '#fbf9ff';
     div.style.border = ls.inWarningState
-      ? '1.5px solid #ef4444'
-      : '1px solid rgba(56, 189, 248, 0.28)';
+      ? '1.5px solid #dc2626'
+      : '1.5px solid rgba(217, 119, 6, 0.35)';
     div.innerHTML = `
-      <div style="font-weight:700; font-size:13.5px;">${escapeHtml(ls.fullName)}</div>
-      <div style="font-size:12px; color:var(--text-muted);">${escapeHtml(ls.registerNumber)} · ${escapeHtml(ls.department)}</div>
+      <div style="font-weight:800; font-size:13.5px; color:#3b0764;">${escapeHtml(ls.fullName)}</div>
+      <div style="font-size:12px; color:var(--text-muted);">${escapeHtml(ls.registerNumber)} · ${escapeHtml(ls.year || 'EEE')}</div>
       <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:12px;">
         <span>Progress: <b>${ls.answeredCount || 0}/${ls.totalQuestions || 30}</b></span>
-        <span style="color:${ls.warningsUsed > 0 ? '#fca5a5' : '#6ee7b7'}; font-weight:700;">
+        <span style="color:${ls.warningsUsed > 0 ? '#b91c1c' : '#047857'}; font-weight:700;">
           ${ls.inWarningState ? '⚠ 20s LOCKOUT!' : `${ls.warningsUsed || 0}/${ls.maxWarnings ?? 2} Warn`}
         </span>
       </div>
@@ -457,12 +457,12 @@ function renderSubmissionsTable() {
         <div style="font-size:11px; color:var(--text-muted);">${escapeHtml(s.phone || '')}</div>
       </td>
       <td>
-        <div style="font-family:monospace; font-weight:700;">${escapeHtml(s.registerNumber)}</div>
-        <div style="font-size:11.5px; color:var(--text-muted);">${escapeHtml(s.department)} · ${escapeHtml(s.year)}</div>
+        <div style="font-family:monospace; font-weight:800; color:#3b0764;">${escapeHtml(s.registerNumber)}</div>
+        <div style="font-size:11.5px; color:var(--text-muted);">EEE · ${escapeHtml(s.year)}</div>
       </td>
       <td>
-        <strong style="font-size:15px; color:#38bdf8;">${s.score}/${s.totalQuestions}</strong>
-        <div style="font-size:11.5px; color:var(--text-muted);">${s.percentage}%</div>
+        <strong style="font-size:15px; color:#5b21b6;">${s.score}/${s.totalQuestions}</strong>
+        <div style="font-size:11.5px; color:#b45309; font-weight:700;">${s.percentage}%</div>
       </td>
       <td>${mins}m ${secs}s</td>
       <td>${secTag}</td>
@@ -587,13 +587,13 @@ function openSubmissionModal(s) {
     ? violations
         .map(
           (v) => `
-        <div style="padding:8px 10px; border-radius:8px; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); font-size:12.5px; margin-bottom:6px;">
+        <div style="padding:8px 10px; border-radius:8px; background:#fef2f2; border:1px solid #fecaca; color:#991b1b; font-size:12.5px; margin-bottom:6px;">
           <strong>Incident #${v.incidentNumber}:</strong> ${escapeHtml(v.reason)}
-          <div style="font-size:11px; color:var(--text-muted);">${new Date(v.timestamp).toLocaleString()}</div>
+          <div style="font-size:11px; color:#7f1d1d;">${new Date(v.timestamp).toLocaleString()}</div>
         </div>`
         )
         .join('')
-    : `<div style="font-size:13px; color:#6ee7b7;">✓ Zero security violations recorded.</div>`;
+    : `<div style="font-size:13px; color:#047857; font-weight:600;">✓ Zero security violations recorded.</div>`;
 
   const verifyUrl = s.certificateId
     ? buildVerificationLink(settings.camsVerificationUrl || settings.camsWebhookUrl, s.certificateId)
@@ -603,9 +603,9 @@ function openSubmissionModal(s) {
     ? s.breakdown
         .map(
           (b, idx) => `
-        <div style="padding:8px 10px; border-bottom:1px solid var(--border-subtle); font-size:12.5px;">
-          <div><strong>Q${idx + 1}.</strong> ${escapeHtml(b.question)}</div>
-          <div style="color:${b.isCorrect ? '#6ee7b7' : '#fca5a5'}; margin-top:2px;">
+        <div style="padding:8px 10px; border-bottom:1px solid rgba(91,33,182,0.1); font-size:12.5px;">
+          <div style="color:#1e1035;"><strong>Q${idx + 1}.</strong> ${escapeHtml(b.question)}</div>
+          <div style="color:${b.isCorrect ? '#047857' : '#b91c1c'}; margin-top:2px;">
             Selected: <b>${escapeHtml(b.selectedText)}</b> ${
             b.isCorrect ? '✓' : `(Correct: ${escapeHtml(b.correctText)})`
           }
@@ -616,26 +616,26 @@ function openSubmissionModal(s) {
     : '';
 
   body.innerHTML = `
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:13px; margin-bottom:14px; padding:12px; background:rgba(15,23,42,0.7); border-radius:10px;">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:13px; margin-bottom:14px; padding:12px; background:#fbf9ff; border:1px solid rgba(217,119,6,0.3); border-radius:10px;">
       <div><strong>Email:</strong> ${escapeHtml(s.email)}</div>
       <div><strong>Mobile:</strong> ${escapeHtml(s.phone || '-')}</div>
-      <div><strong>Dept / Year:</strong> ${escapeHtml(s.department)} · ${escapeHtml(s.year)}</div>
-      <div><strong>College:</strong> ${escapeHtml(s.college)}</div>
+      <div><strong>Dept / Year:</strong> EEE · ${escapeHtml(s.year)}</div>
+      <div><strong>College:</strong> SRM TRP Engineering College</div>
       <div><strong>Score:</strong> ${s.score}/${s.totalQuestions} (${s.percentage}%)</div>
       <div><strong>Submit Reason:</strong> ${escapeHtml(s.submitReason)}</div>
       <div><strong>Cert Status:</strong> ${escapeHtml(s.certificateStatus)}</div>
       <div><strong>Cert ID:</strong> ${
         verifyUrl
-          ? `<a href="${escapeHtml(verifyUrl)}" target="_blank" style="color:#38bdf8;">${escapeHtml(s.certificateId)} ↗</a>`
+          ? `<a href="${escapeHtml(verifyUrl)}" target="_blank" style="color:#5b21b6; font-weight:700;">${escapeHtml(s.certificateId)} ↗</a>`
           : '-'
       }</div>
     </div>
 
-    <h4 style="margin:12px 0 8px; font-size:14px;">Proctoring &amp; Violation Timeline (${violations.length})</h4>
+    <h4 style="margin:12px 0 8px; font-size:14px; color:#3b0764;">Proctoring &amp; Violation Timeline (${violations.length})</h4>
     ${violationHtml}
 
-    <h4 style="margin:16px 0 8px; font-size:14px;">Question-by-Question Responses</h4>
-    <div style="max-height:280px; overflow-y:auto; border:1px solid var(--border-subtle); border-radius:10px;">
+    <h4 style="margin:16px 0 8px; font-size:14px; color:#3b0764;">Question-by-Question Responses</h4>
+    <div style="max-height:280px; overflow-y:auto; border:1px solid rgba(91,33,182,0.16); border-radius:10px; background:#fff;">
       ${breakdownHtml}
     </div>
   `;
@@ -656,14 +656,17 @@ function renderQuestionsBank() {
     const card = document.createElement('div');
     card.style.padding = '14px';
     card.style.borderRadius = '12px';
-    card.style.background = 'rgba(15, 23, 42, 0.72)';
-    card.style.border = '1px solid var(--border-subtle)';
+    card.style.background = '#fbf9ff';
+    card.style.border = '1px solid rgba(91, 33, 182, 0.16)';
+    card.style.borderLeft = '3.5px solid #d97706';
 
     const optsHtml = q.options
       .map(
         (opt, oIdx) => `
-        <div style="font-size:13px; padding:3px 0; color:${
-          oIdx === Number(q.correctIndex) ? '#6ee7b7' : 'var(--text-secondary)'
+        <div style="font-size:13px; padding:3px 0; font-weight:${
+          oIdx === Number(q.correctIndex) ? '700' : '500'
+        }; color:${
+          oIdx === Number(q.correctIndex) ? '#047857' : 'var(--text-secondary)'
         };">
           ${oIdx === Number(q.correctIndex) ? '✓' : '○'} ${escapeHtml(opt)}
         </div>`
@@ -673,10 +676,10 @@ function renderQuestionsBank() {
     card.innerHTML = `
       <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
         <div>
-          <span style="font-size:11px; color:#38bdf8; font-weight:700; text-transform:uppercase;">
+          <span style="font-size:11px; color:#5b21b6; font-weight:800; text-transform:uppercase;">
             Q${idx + 1} · ${escapeHtml(q.category || 'General')} (${q.type === 'tf' ? 'True/False' : 'MCQ'})
           </span>
-          <div style="font-weight:700; font-size:14.5px; margin:4px 0 8px;">${escapeHtml(q.question)}</div>
+          <div style="font-weight:700; font-size:14.5px; margin:4px 0 8px; color:#1e1035;">${escapeHtml(q.question)}</div>
           ${optsHtml}
         </div>
         <div style="display:flex; gap:6px; flex-shrink:0;">

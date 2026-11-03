@@ -1,5 +1,6 @@
 /**
- * EMBEDX Student Mobile-First Quiz Application
+ * EMBEDX Student Mobile-First Quiz Application (EEE Department · SRM TRP Engineering College)
+ * Theme: Royal Purple, Metallic Gold & Crisp White
  * Orchestrates Registration -> Security Briefing -> Seeded Shuffling ->
  * Canvas Question Rendering -> 2-Warning/20s Proctor -> CAMS Certificate Issuance.
  */
@@ -18,10 +19,12 @@ import { ExamProctor } from './proctor.js';
 import { buildVerificationLink, issueCamsCertificate } from './cams-client.js';
 
 const ACTIVE_ATTEMPT_KEY = 'embedx_student_active_attempt_v1';
+const FIXED_DEPARTMENT = 'EEE';
+const FIXED_COLLEGE = 'SRM TRP Engineering College';
 
 let settings = null;
 let rawQuestions = [];
-let preparedQuestions = []; // Seeded-shuffled questions & options for current student
+let preparedQuestions = [];
 let candidate = null;
 let attemptState = null;
 let proctor = null;
@@ -68,7 +71,6 @@ function buildStudentQuestionSet(questions, studentSeed, doShuffleQuestions, doS
       origIdx,
       isCorrect: origIdx === Number(q.correctIndex)
     }));
-    // Keep True/False in standard True, False order; shuffle MCQ options when enabled
     const finalOpts =
       doShuffleOptions && q.type !== 'tf' ? seededShuffle(indexedOpts, rng) : indexedOpts;
     return {
@@ -118,7 +120,6 @@ async function initPortal() {
   applySettingsToLandingUI();
   bindUIEvents();
 
-  // Check if there is an unfinished active attempt on this mobile browser
   await tryRestoreActiveAttempt();
 }
 
@@ -146,13 +147,13 @@ function applySettingsToLandingUI() {
   if (!settings.quizOpen) {
     closedBanner.classList.remove('hidden');
     submitBtn.disabled = true;
-    dot.style.background = '#ef4444';
+    dot.style.background = '#dc2626';
     statusLabel.textContent = 'Assessment Paused';
   } else {
     closedBanner.classList.add('hidden');
     submitBtn.disabled = false;
-    dot.style.background = '#10b981';
-    statusLabel.textContent = 'Proctored Workshop Assessment';
+    dot.style.background = '#d97706';
+    statusLabel.textContent = 'EEE Workshop Assessment';
   }
 }
 
@@ -187,18 +188,14 @@ function bindUIEvents() {
     const email = document.getElementById('reg-email').value.trim().toLowerCase();
     const registerNumber = document.getElementById('reg-number').value.trim().toUpperCase();
     const phone = document.getElementById('reg-phone').value.trim().replace(/\s+/g, '');
-    const department = document.getElementById('reg-dept').value.trim();
     const year = document.getElementById('reg-year').value.trim();
-    const college = document.getElementById('reg-college').value.trim();
     const enteredPin = document.getElementById('reg-passcode').value.trim();
 
     if (fullName.length < 2) return showRegisterError('Please enter your full name (for certificate printing).');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showRegisterError('Please enter a valid email address.');
-    if (registerNumber.length < 4) return showRegisterError('Please enter your valid Register / Roll Number.');
+    if (registerNumber.length < 4) return showRegisterError('Please enter your valid Register Number.');
     if (!/^\+?\d{10,14}$/.test(phone)) return showRegisterError('Please enter a valid 10-digit mobile number.');
-    if (!department) return showRegisterError('Please select your Department.');
     if (!year) return showRegisterError('Please select your Year of Study.');
-    if (!college) return showRegisterError('Please enter your College / Institution name.');
 
     const requiredPin = String(settings.examAccessCode || '').trim();
     if (requiredPin && enteredPin !== requiredPin) {
@@ -218,7 +215,16 @@ function bindUIEvents() {
         }
       }
 
-      candidate = { fullName, email, registerNumber, phone, department, year, college };
+      candidate = {
+        fullName,
+        email,
+        registerNumber,
+        phone,
+        department: FIXED_DEPARTMENT,
+        year,
+        college: FIXED_COLLEGE
+      };
+
       document.getElementById('brief-student-name').textContent = fullName;
       document.getElementById('brief-student-reg').textContent = registerNumber;
       document.getElementById('brief-student-email').textContent = email;
@@ -232,7 +238,6 @@ function bindUIEvents() {
     }
   });
 
-  // Consent checkbox
   const consentChk = document.getElementById('chk-security-consent');
   const startBtn = document.getElementById('btn-start-quiz');
   consentChk.addEventListener('change', () => {
@@ -243,7 +248,6 @@ function bindUIEvents() {
     showScreen('register');
   });
 
-  // Start Quiz (Inside user click gesture so Fullscreen API succeeds on mobile Chrome!)
   startBtn.addEventListener('click', async () => {
     if (!candidate) return;
     startBtn.disabled = true;
@@ -259,8 +263,8 @@ function bindUIEvents() {
         startedAt: now,
         deadlineAt: now + durationMs,
         currentIndex: 0,
-        answers: {}, // { [questionId]: selectedOptionIndex }
-        flagged: {}, // { [questionId]: true }
+        answers: {},
+        flagged: {},
         warningsUsed: 0,
         violations: [],
         warningOverlayOpen: false,
@@ -269,15 +273,12 @@ function bindUIEvents() {
       };
       persistAttemptLocal();
 
-      // Request Fullscreen immediately inside user gesture
       if (settings.requireFullscreen && ExamProctor.isFullscreenSupported()) {
         try {
           const el = document.documentElement;
           if (el.requestFullscreen) await el.requestFullscreen({ navigationUI: 'hide' });
           else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
-        } catch (_) {
-          // Proceed even if browser blocks fullscreen, visibility/blur guards still protect
-        }
+        } catch (_) {}
       }
 
       launchActiveQuiz();
@@ -287,7 +288,6 @@ function bindUIEvents() {
     }
   });
 
-  // Navigation buttons
   document.getElementById('btn-prev-q').addEventListener('click', () => {
     if (!attemptState || attemptState.currentIndex <= 0) return;
     attemptState.currentIndex--;
@@ -315,7 +315,6 @@ function bindUIEvents() {
     renderCurrentQuestion();
   });
 
-  // Palette Drawer
   document.getElementById('btn-open-palette').addEventListener('click', () => {
     renderPaletteGrid();
     document.getElementById('palette-drawer').classList.remove('hidden');
@@ -328,7 +327,6 @@ function bindUIEvents() {
     openSubmitConfirmation();
   });
 
-  // Submit Confirmation Modal
   document.getElementById('btn-cancel-submit').addEventListener('click', () => {
     document.getElementById('submit-confirm-modal').classList.add('hidden');
   });
@@ -337,14 +335,12 @@ function bindUIEvents() {
     finalizeQuizSubmission('Manual Submit', false);
   });
 
-  // Resume button inside 20-second Warning Curtain
   document.getElementById('btn-resume-exam').addEventListener('click', async () => {
     if (!proctor) return;
     await proctor.acknowledgeAndResume();
     renderCurrentQuestion();
   });
 
-  // Re-render canvas cleanly on phone rotation / resize
   window.addEventListener('resize', () => {
     if (!screens.quiz.classList.contains('hidden') && attemptState) {
       renderCurrentQuestion();
@@ -353,7 +349,7 @@ function bindUIEvents() {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Active Attempt Restore (Crash / Reload Resilience + Tamper Protection)     */
+/* Active Attempt Restore                                                     */
 /* -------------------------------------------------------------------------- */
 
 function persistAttemptLocal() {
@@ -382,7 +378,6 @@ async function tryRestoreActiveAttempt() {
   candidate = saved.candidate;
   attemptState = saved;
 
-  // Check if already submitted
   const existing = await checkExistingSubmission(candidate.email, candidate.registerNumber);
   if (existing) {
     clearAttemptLocal();
@@ -390,7 +385,6 @@ async function tryRestoreActiveAttempt() {
     return;
   }
 
-  // If overall quiz deadline already passed while browser was closed -> Auto-submit immediately!
   if (Date.now() >= attemptState.deadlineAt) {
     preparedQuestions = buildStudentQuestionSet(
       rawQuestions,
@@ -420,7 +414,6 @@ function launchActiveQuiz() {
   showScreen('quiz');
   renderCurrentQuestion();
 
-  // Initialize Proctoring Engine
   if (proctor) proctor.stop();
   proctor = new ExamProctor({
     maxWarnings: settings.maxWarnings ?? 2,
@@ -457,7 +450,6 @@ function launchActiveQuiz() {
   });
   proctor.start();
 
-  // Overall Quiz Timer (Wall-clock Date.now() so mobile backgrounding never pauses exam clock)
   if (quizTimerInterval) clearInterval(quizTimerInterval);
   const tickQuizClock = () => {
     if (!attemptState) return;
@@ -482,7 +474,6 @@ function launchActiveQuiz() {
   tickQuizClock();
   quizTimerInterval = setInterval(tickQuizClock, 500);
 
-  // Live Proctoring Heartbeat for Admin Monitor
   syncHeartbeat();
   if (heartbeatInterval) clearInterval(heartbeatInterval);
   heartbeatInterval = setInterval(syncHeartbeat, 10000);
@@ -495,7 +486,7 @@ function syncHeartbeat() {
     fullName: candidate.fullName,
     email: candidate.email,
     registerNumber: candidate.registerNumber,
-    department: candidate.department,
+    department: candidate.department || FIXED_DEPARTMENT,
     year: candidate.year,
     answeredCount,
     totalQuestions: preparedQuestions.length,
@@ -534,14 +525,12 @@ function renderCurrentQuestion() {
   const q = preparedQuestions[idx];
   const total = preparedQuestions.length;
 
-  // Progress & Answered badge
   const answeredCount = Object.keys(attemptState.answers).length;
   document.getElementById('answered-counter-text').textContent = `${answeredCount}/${total}`;
   document.getElementById('exam-progress-fill').style.width = `${Math.round(
     ((idx + 1) / total) * 100
   )}%`;
 
-  // Render Canvas-Protected Question Text
   const canvas = document.getElementById('question-canvas');
   const fallbackEl = document.getElementById('question-fallback-text');
   renderProtectedQuestionCanvas(canvas, {
@@ -554,7 +543,6 @@ function renderCurrentQuestion() {
     fallbackTextEl: fallbackEl
   });
 
-  // Render Options
   const container = document.getElementById('options-container');
   container.innerHTML = '';
   const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -584,18 +572,18 @@ function renderCurrentQuestion() {
     container.appendChild(btn);
   });
 
-  // Bottom bar states
   document.getElementById('btn-prev-q').disabled = idx === 0;
   const flagBtn = document.getElementById('btn-flag-q');
   const isFlagged = Boolean(attemptState.flagged[q.id]);
   flagBtn.textContent = isFlagged ? '⚑ Marked' : '⚑ Review';
-  flagBtn.style.borderColor = isFlagged ? 'rgba(245, 158, 11, 0.65)' : '';
-  flagBtn.style.color = isFlagged ? '#fcd34d' : '';
+  flagBtn.style.borderColor = isFlagged ? '#d97706' : '';
+  flagBtn.style.background = isFlagged ? '#fffbeb' : '';
+  flagBtn.style.color = isFlagged ? '#b45309' : '';
 
   const nextBtn = document.getElementById('btn-next-q');
   if (idx === total - 1) {
     nextBtn.textContent = 'Finish & Submit ✓';
-    nextBtn.className = 'btn btn-emerald';
+    nextBtn.className = 'btn btn-gold';
   } else {
     nextBtn.textContent = 'Next →';
     nextBtn.className = 'btn btn-primary';
@@ -654,7 +642,6 @@ async function finalizeQuizSubmission(submitReason = 'Manual Submit', isAutoSubm
   if (heartbeatInterval) clearInterval(heartbeatInterval);
   ExamProctor.exitFullscreenSafe();
 
-  // Grade answers
   let score = 0;
   const detailedBreakdown = preparedQuestions.map((q) => {
     const chosenIdx = attemptState.answers[q.id];
@@ -674,14 +661,13 @@ async function finalizeQuizSubmission(submitReason = 'Manual Submit', isAutoSubm
   const percentage = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
   const elapsedSeconds = Math.max(1, Math.round((Date.now() - attemptState.startedAt) / 1000));
 
-  // Determine CAMS Certificate Eligibility based on Admin Policy
   let certEligible = false;
   if (settings.certificateMode === 'all_completions') {
     certEligible = true;
   } else if (settings.certificateMode === 'min_score') {
     certEligible = percentage >= Number(settings.minScorePercentForCert || 50);
   } else {
-    certEligible = false; // manual_only
+    certEligible = false;
   }
 
   const submissionPayload = {
@@ -689,9 +675,9 @@ async function finalizeQuizSubmission(submitReason = 'Manual Submit', isAutoSubm
     email: candidate.email,
     registerNumber: candidate.registerNumber,
     phone: candidate.phone,
-    department: candidate.department,
+    department: FIXED_DEPARTMENT,
     year: candidate.year,
-    college: candidate.college,
+    college: FIXED_COLLEGE,
     score,
     totalQuestions,
     percentage,
@@ -716,7 +702,6 @@ async function finalizeQuizSubmission(submitReason = 'Manual Submit', isAutoSubm
 
   renderResultScreen(savedRecord, false);
 
-  // Trigger Automated CAMS Certificate Generation & Email Delivery if eligible!
   if (certEligible && settings.camsEnabled) {
     const camsResult = await issueCamsCertificate(savedRecord, settings);
     const certPatch = camsResult.ok
@@ -758,7 +743,9 @@ function renderResultScreen(record, isReturningLookup) {
     ? 'Auto-Submitted'
     : 'Assessment Completed';
 
-  document.getElementById('result-candidate-line').textContent = `${record.fullName} · ${record.registerNumber} (${record.department})`;
+  document.getElementById('result-candidate-line').textContent = `${record.fullName} · ${
+    record.registerNumber
+  } (${record.year || 'EEE'})`;
 
   const visibility = settings.resultVisibility || 'score_only';
   const scoreSection = document.getElementById('result-score-section');
@@ -788,7 +775,6 @@ function renderResultScreen(record, isReturningLookup) {
 
   renderCertificateBanner(record);
 
-  // Full Answer Review (only when coordinator sets resultVisibility === 'full_answers')
   const reviewWrap = document.getElementById('result-answers-review');
   const reviewList = document.getElementById('result-answers-list');
   if (visibility === 'full_answers' && Array.isArray(record.breakdown)) {
@@ -798,27 +784,27 @@ function renderResultScreen(record, isReturningLookup) {
       const box = document.createElement('div');
       box.style.padding = '12px 14px';
       box.style.borderRadius = '12px';
-      box.style.background = 'rgba(15, 23, 42, 0.72)';
-      box.style.border = `1px solid ${
-        item.isCorrect ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.35)'
+      box.style.background = '#fbf9ff';
+      box.style.border = `1.5px solid ${
+        item.isCorrect ? 'rgba(4, 120, 87, 0.35)' : 'rgba(185, 28, 28, 0.35)'
       }`;
       box.innerHTML = `
-        <div style="font-size:13.5px; font-weight:700; margin-bottom:6px;">Q${i + 1}. ${escapeHtml(
+        <div style="font-size:13.5px; font-weight:700; margin-bottom:6px; color:#1e1035;">Q${i + 1}. ${escapeHtml(
         item.question
       )}</div>
-        <div style="font-size:12.5px; color:${item.isCorrect ? '#6ee7b7' : '#fca5a5'};">
+        <div style="font-size:12.5px; color:${item.isCorrect ? '#047857' : '#b91c1c'};">
           Your Answer: <b>${escapeHtml(item.selectedText)}</b> ${item.isCorrect ? '✓' : '✕'}
         </div>
         ${
           !item.isCorrect
-            ? `<div style="font-size:12.5px; color:#6ee7b7; margin-top:2px;">Correct Answer: <b>${escapeHtml(
+            ? `<div style="font-size:12.5px; color:#047857; margin-top:2px;">Correct Answer: <b>${escapeHtml(
                 item.correctText
               )}</b></div>`
             : ''
         }
         ${
           item.explanation
-            ? `<div style="font-size:12px; color:#94a3b8; margin-top:6px;">${escapeHtml(
+            ? `<div style="font-size:12px; color:#4a3869; margin-top:6px;">${escapeHtml(
                 item.explanation
               )}</div>`
             : ''
@@ -842,7 +828,7 @@ function renderCertificateBanner(record) {
 
   if (record.certificateStatus === 'SENT') {
     box.classList.remove('pending');
-    title.style.color = '#6ee7b7';
+    title.style.color = '#047857';
     title.textContent = '✓ CAMS Certificate Generated & Emailed!';
     desc.textContent = `Your signed PDF Certificate of Participation has been sent to ${record.email}. Check your Inbox (and Spam/Promotions tab).`;
     if (record.certificateId) {
@@ -864,7 +850,7 @@ function renderCertificateBanner(record) {
 
   if (record.certificateStatus === 'PROCESSING') {
     box.classList.add('pending');
-    title.style.color = '#fcd34d';
+    title.style.color = '#b45309';
     title.textContent = '⏳ Generating Your CAMS Certificate...';
     desc.textContent = `Preparing your personalized PDF certificate & QR verification for ${record.email}...`;
     idRow.classList.add('hidden');
@@ -876,16 +862,15 @@ function renderCertificateBanner(record) {
     record.percentage < Number(settings.minScorePercentForCert || 50)
   ) {
     box.classList.add('pending');
-    title.style.color = '#fca5a5';
+    title.style.color = '#b91c1c';
     title.textContent = 'Minimum Passing Score Not Reached';
     desc.textContent = `A minimum score of ${settings.minScorePercentForCert}% is required for automatic certificate issuance.`;
     idRow.classList.add('hidden');
     return;
   }
 
-  // Queued / Manual / Pending CAMS webhook deployment
   box.classList.add('pending');
-  title.style.color = '#38bdf8';
+  title.style.color = '#5b21b6';
   title.textContent = '✓ Registered for CAMS Certificate Delivery';
   desc.textContent = `Your completion record is saved! Your signed PDF certificate will be delivered to ${record.email} via the EMBEDX CAMS system.`;
   idRow.classList.add('hidden');

@@ -3,32 +3,33 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#070c18" />
-  <title>Coordinator Admin Portal · EMBEDX Quiz &amp; CAMS</title>
+  <meta name="theme-color" content="#3b0764" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Coordinator Admin Console · EMBEDX EEE</title>
   <link rel="stylesheet" href="/css/styles.css" />
 </head>
 <body>
 
   <!-- =====================================================================
-       DEDICATED ADMIN LOGIN VIEW (RESTRICTED EXCLUSIVELY TO AUTHORIZED EMAIL)
+       SEPARATE STANDALONE ADMIN LOGIN VIEW (/admin)
+       Strictly Restricted to 814725105014@trp.srmtrichy.edu.in
        ===================================================================== -->
   <main id="admin-login-view" class="app-shell">
     <header class="brand-bar">
       <div class="brand-id">
         <div class="brand-emblem">EX</div>
         <div class="brand-titles">
-          <h1>EMBEDX Admin Access</h1>
-          <p>Restricted Coordinator Console</p>
+          <h1>EMBEDX Coordinator Login</h1>
+          <p>Dept. of EEE · SRM TRP Engineering College</p>
         </div>
       </div>
-      <a href="/" class="admin-link-pill">← Student Portal</a>
     </header>
 
     <section class="card">
-      <div class="hero-chip">Authorized Coordinator Only</div>
+      <div class="hero-chip">Restricted Admin Portal</div>
       <h2 class="card-title">Administrator Sign In</h2>
       <p class="card-subtitle">
-        Separate administrative authentication for EMBEDX Quiz Control, Live Anti-Cheat Proctoring &amp; CAMS Certificate Management.
+        Dedicated sign-in for authorized EMBEDX Quiz Control, Live Anti-Cheat Proctoring &amp; CAMS Certificate Management.
       </p>
 
       <div id="admin-login-error" class="alert alert-error hidden"></div>
@@ -40,7 +41,7 @@
             <input
               type="email"
               id="admin-email"
-              placeholder="Authorized SRM TRP coordinator email"
+              placeholder="Enter authorized administrator email"
               autocomplete="username"
               required
             />
@@ -60,7 +61,7 @@
               <button
                 type="button"
                 id="btn-toggle-pw"
-                style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14); color:#cbd5e1; border-radius:6px; padding:5px 9px; font-size:12px; cursor:pointer;"
+                style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:#f3ecff; border:1px solid rgba(91,33,182,0.25); color:#4c1d95; font-weight:700; border-radius:6px; padding:5px 9px; font-size:12px; cursor:pointer;"
               >
                 Show
               </button>
@@ -91,8 +92,8 @@
       </div>
 
       <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-        <a href="/" target="_blank" class="btn btn-secondary btn-sm">Open Student View ↗</a>
-        <button type="button" id="btn-admin-logout" class="btn btn-danger btn-sm">Sign Out</button>
+        <a href="/" target="_blank" class="header-pill">Open Student Quiz ↗</a>
+        <button type="button" id="btn-admin-logout" class="btn btn-gold btn-sm">Sign Out</button>
       </div>
     </header>
 
@@ -106,23 +107,23 @@
       </div>
       <div class="stat-box">
         <div class="label">Live Active Now</div>
-        <div id="kpi-live-active" class="value" style="color: #38bdf8;">0</div>
+        <div id="kpi-live-active" class="value" style="color: #5b21b6;">0</div>
       </div>
       <div class="stat-box">
         <div class="label">Average Score</div>
-        <div id="kpi-avg-score" class="value" style="color: #34d399;">0%</div>
+        <div id="kpi-avg-score" class="value" style="color: #047857;">0%</div>
       </div>
       <div class="stat-box">
         <div class="label">Auto-Submitted</div>
-        <div id="kpi-auto-sub" class="value" style="color: #f87171;">0</div>
+        <div id="kpi-auto-sub" class="value" style="color: #b91c1c;">0</div>
       </div>
       <div class="stat-box">
         <div class="label">Warnings Logged</div>
-        <div id="kpi-warnings" class="value" style="color: #fbbf24;">0</div>
+        <div id="kpi-warnings" class="value" style="color: #d97706;">0</div>
       </div>
       <div class="stat-box">
         <div class="label">Certificates Sent</div>
-        <div id="kpi-certs-sent" class="value" style="color: #a78bfa;">0</div>
+        <div id="kpi-certs-sent" class="value" style="color: #4c1d95;">0</div>
       </div>
     </section>
 
@@ -151,12 +152,12 @@
       <div class="card" style="padding: 16px 18px;">
         <div style="display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:space-between;">
           <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-            <button type="button" id="btn-quick-toggle-quiz" class="btn btn-emerald btn-sm">
+            <button type="button" id="btn-quick-toggle-quiz" class="btn btn-gold btn-sm">
               ● Quiz Status: OPEN
             </button>
             <div style="display:flex; align-items:center; gap:8px; font-size:13px;">
-              <span style="color:var(--text-muted);">Student Result View:</span>
-              <select id="quick-result-visibility" style="padding:6px 10px; border-radius:8px; background:var(--bg-input); color:#fff; border:1px solid var(--border-subtle); font-size:13px;">
+              <span style="color:var(--text-secondary); font-weight:600;">Student Result View:</span>
+              <select id="quick-result-visibility" style="padding:7px 11px; border-radius:8px; background:#fff; color:#1e1035; border:1.5px solid rgba(91,33,182,0.22); font-size:13px; font-weight:600;">
                 <option value="score_only">Score &amp; Cert Status Only</option>
                 <option value="receipt_only">Submission Receipt Only (Hide Score)</option>
                 <option value="full_answers">Full Score + Answers &amp; Explanations</option>
@@ -180,7 +181,7 @@
 
       <!-- Active Live Test-Takers -->
       <div id="live-sessions-card" class="card hidden">
-        <h3 style="margin:0 0 10px; font-size:15px; color:#38bdf8;">
+        <h3 style="margin:0 0 10px; font-size:15px; color:#5b21b6;">
           ● Students Currently Taking Quiz Live
         </h3>
         <div id="live-sessions-list" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:10px;"></div>
@@ -192,12 +193,12 @@
           <input
             type="search"
             id="sub-search-input"
-            placeholder="Search by Name, Reg No, Email or Dept..."
-            style="max-width:340px; width:100%; padding:9px 12px; border-radius:9px; background:var(--bg-input); border:1px solid var(--border-subtle); color:#fff; font-size:14px;"
+            placeholder="Search by Name, Reg No, Email or Year..."
+            style="max-width:340px; width:100%; padding:9px 12px; border-radius:9px; background:#fff; border:1.5px solid rgba(91,33,182,0.22); color:#1e1035; font-size:14px;"
           />
           <select
             id="sub-filter-select"
-            style="padding:9px 12px; border-radius:9px; background:var(--bg-input); border:1px solid var(--border-subtle); color:#fff; font-size:13.5px;"
+            style="padding:9px 12px; border-radius:9px; background:#fff; border:1.5px solid rgba(91,33,182,0.22); color:#1e1035; font-size:13.5px; font-weight:600;"
           >
             <option value="all">All Submissions</option>
             <option value="autosubmit">Auto-Submitted Only</option>
@@ -212,7 +213,7 @@
             <thead>
               <tr>
                 <th>Participant</th>
-                <th>Reg No &amp; Dept</th>
+                <th>Reg No &amp; Year</th>
                 <th>Score</th>
                 <th>Time</th>
                 <th>Security</th>
@@ -237,7 +238,7 @@
          =================================================================== -->
     <section id="tab-settings" class="admin-tab-panel hidden">
       <div class="card">
-        <h3 style="margin:0 0 6px; font-size:18px;">Quiz &amp; Mobile Anti-Cheat Configuration</h3>
+        <h3 style="margin:0 0 6px; font-size:18px; color:#3b0764;">Quiz &amp; Mobile Anti-Cheat Configuration</h3>
         <p class="card-subtitle">Changes apply immediately to all new quiz sessions.</p>
 
         <form id="settings-form">
@@ -319,7 +320,7 @@
       <div class="card">
         <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; align-items:center; margin-bottom:16px;">
           <div>
-            <h3 style="margin:0; font-size:18px;">EMBEDX Workshop Question Bank (<span id="qbank-count">30</span>)</h3>
+            <h3 style="margin:0; font-size:18px; color:#3b0764;">EMBEDX Workshop Question Bank (<span id="qbank-count">30</span>)</h3>
             <p style="margin:3px 0 0; font-size:13px; color:var(--text-muted);">
               Loaded from <code>EMBEDX_30_Question_Workshop_Quiz_with_Answers.pdf</code>
             </p>
@@ -340,7 +341,7 @@
     <section id="tab-cams" class="admin-tab-panel hidden">
       <div class="card">
         <div class="hero-chip">CAMS Google Workspace Integration</div>
-        <h3 style="margin:0 0 6px; font-size:18px;">Certificate Automation Management System (CAMS)</h3>
+        <h3 style="margin:0 0 6px; font-size:18px; color:#3b0764;">Certificate Automation Management System (CAMS)</h3>
         <p class="card-subtitle">
           Pre-wired to your SRM TRP Engineering College Google Sheet (<code>1jiVDFpIxGwfSlHBt3vaHl-5GFd8DPGapSS4tsR-FhJQ</code>) &amp; Verification Web App.
         </p>
@@ -376,19 +377,18 @@
 
           <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:16px;">
             <button type="submit" class="btn btn-primary btn-sm">Save CAMS Settings</button>
-            <button type="button" id="btn-test-cams" class="btn btn-secondary btn-sm">⚡ Test CAMS Webhook Connection</button>
+            <button type="button" id="btn-test-cams" class="btn btn-gold btn-sm">⚡ Test CAMS Webhook Connection</button>
           </div>
           <div id="cams-ping-result" class="alert alert-info hidden" style="margin-top:12px;"></div>
         </form>
 
-        <hr style="border:0; border-top:1px solid var(--border-subtle); margin:22px 0;" />
+        <hr style="border:0; border-top:1px solid rgba(91,33,182,0.14); margin:22px 0;" />
 
-        <h4 style="margin:0 0 8px; font-size:15px;">
+        <h4 style="margin:0 0 8px; font-size:15px; color:#3b0764;">
           One-Time CAMS Bridge Script (<code>QuizWebhook.gs</code>)
         </h4>
         <p style="margin:0 0 10px; font-size:13px; color:var(--text-secondary);">
-          Your existing CAMS project handles Google Form triggers (<code>onFormSubmit</code>) and QR verification (<code>doGet</code>).
-          To let this website trigger CAMS automatically via <code>doPost</code>, open your CAMS Apps Script editor, create a new Script file named <strong><code>QuizWebhook</code></strong>, paste the code below, and click <strong>Deploy → Manage deployments → Edit → Version: New version → Deploy</strong>.
+          Open your CAMS Google Form → <strong>⋮ → Script editor</strong>, create a new Script file named <strong><code>QuizWebhook</code></strong>, paste the code below, and click <strong>Deploy → Manage deployments → Edit → Version: New version → Deploy</strong>.
         </p>
         <div style="display:flex; justify-content:flex-end; margin-bottom:6px;">
           <button type="button" id="btn-copy-webhook-gs" class="btn btn-secondary btn-sm">Copy QuizWebhook.gs</button>
@@ -399,9 +399,9 @@
       <!-- Firebase Cloud Live Config Card -->
       <div class="card">
         <div class="hero-chip">Firebase Cloud Database &amp; Auth</div>
-        <h3 style="margin:0 0 6px; font-size:18px;">Firebase Live Connection</h3>
+        <h3 style="margin:0 0 6px; font-size:18px; color:#3b0764;">Firebase Live Connection</h3>
         <p class="card-subtitle">
-          Paste your <code>firebaseConfig</code> JSON object from Firebase Console → Project Settings → Web App to activate multi-device Cloud Firestore &amp; Firebase Auth immediately (also save it permanently in <code>public/js/firebase-config.js</code> before deploying!).
+          Paste your <code>firebaseConfig</code> JSON object from Firebase Console → Project Settings → Web App to activate multi-device Cloud Firestore &amp; Firebase Auth immediately.
         </p>
 
         <div class="field">
@@ -417,7 +417,7 @@
         </div>
 
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
-          <button type="button" id="btn-save-firebase-cfg" class="btn btn-emerald btn-sm">
+          <button type="button" id="btn-save-firebase-cfg" class="btn btn-gold btn-sm">
             Connect Firebase Config
           </button>
           <button type="button" id="btn-clear-firebase-cfg" class="btn btn-secondary btn-sm">
@@ -435,7 +435,7 @@
   <div id="detail-modal" class="modal-overlay hidden">
     <div class="modal-box">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-        <h3 id="detail-modal-title" style="margin:0; font-size:18px;">Submission Details</h3>
+        <h3 id="detail-modal-title" style="margin:0; font-size:18px; color:#3b0764;">Submission Details</h3>
         <button type="button" id="btn-close-detail-modal" class="btn btn-secondary btn-sm">Close ✕</button>
       </div>
       <div id="detail-modal-body"></div>
@@ -447,7 +447,7 @@
        ===================================================================== -->
   <div id="question-modal" class="modal-overlay hidden">
     <div class="modal-box">
-      <h3 id="qmodal-title" style="margin:0 0 14px; font-size:18px;">Edit Question</h3>
+      <h3 id="qmodal-title" style="margin:0 0 14px; font-size:18px; color:#3b0764;">Edit Question</h3>
       <form id="question-edit-form">
         <input type="hidden" id="qedit-idx" value="-1" />
         <div class="form-grid">

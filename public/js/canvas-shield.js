@@ -1,10 +1,6 @@
 /**
  * Canvas Shield — Anti Circle-to-Search & Anti-Scraping Question Renderer
- *
- * Renders quiz question text onto a HiDPI HTML5 <canvas> element instead of
- * selectable DOM text, paired with a subtle diagonal student Register Number
- * watermark so neither DOM scrapers, copy extensions, nor Android text-selection
- * overlays can extract question text.
+ * Styled in Crisp White, Royal Purple & Metallic Gold
  */
 
 export function renderProtectedQuestionCanvas(canvas, options) {
@@ -19,7 +15,6 @@ export function renderProtectedQuestionCanvas(canvas, options) {
     fallbackTextEl = null
   } = options || {};
 
-  // If admin disabled canvas mode, show non-selectable DOM fallback
   if (!canvasAntiSearch && fallbackTextEl) {
     canvas.style.display = 'none';
     fallbackTextEl.style.display = 'block';
@@ -39,7 +34,7 @@ export function renderProtectedQuestionCanvas(canvas, options) {
   const dpr = Math.min(window.devicePixelRatio || 1, 3);
 
   const padX = parentWidth < 400 ? 16 : 22;
-  const padTop = 18;
+  const padTop = 20;
   const padBottom = 20;
   const maxTextWidth = parentWidth - padX * 2;
 
@@ -48,7 +43,7 @@ export function renderProtectedQuestionCanvas(canvas, options) {
   const fontStack = `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`;
 
   const ctx = canvas.getContext('2d');
-  ctx.font = `600 ${fontSize}px ${fontStack}`;
+  ctx.font = `700 ${fontSize}px ${fontStack}`;
 
   // Wrap question text cleanly by words
   const words = String(questionText || '').split(/\s+/).filter(Boolean);
@@ -69,9 +64,9 @@ export function renderProtectedQuestionCanvas(canvas, options) {
   if (currentLine) lines.push(currentLine);
 
   const badgeHeight = 26;
-  const gapAfterBadge = 12;
+  const gapAfterBadge = 13;
   const totalHeight = Math.max(
-    112,
+    114,
     padTop + badgeHeight + gapAfterBadge + lines.length * lineHeight + padBottom
   );
 
@@ -82,68 +77,84 @@ export function renderProtectedQuestionCanvas(canvas, options) {
 
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  // Card background
+  // Crisp White & Subtle Pearl-Purple Card Surface
   const grad = ctx.createLinearGradient(0, 0, parentWidth, totalHeight);
-  grad.addColorStop(0, '#0f172a');
-  grad.addColorStop(1, '#162238');
+  grad.addColorStop(0, '#ffffff');
+  grad.addColorStop(1, '#faf6ff');
   ctx.fillStyle = grad;
   roundRect(ctx, 0, 0, parentWidth, totalHeight, 14);
   ctx.fill();
 
-  // Subtle border
-  ctx.strokeStyle = 'rgba(56, 189, 248, 0.22)';
-  ctx.lineWidth = 1;
-  roundRect(ctx, 0.5, 0.5, parentWidth - 1, totalHeight - 1, 14);
-  ctx.stroke();
+  // Top Metallic Gold Accent Strip
+  ctx.save();
+  ctx.beginPath();
+  roundRect(ctx, 0, 0, parentWidth, totalHeight, 14);
+  ctx.clip();
+  const topGold = ctx.createLinearGradient(0, 0, parentWidth, 0);
+  topGold.addColorStop(0, '#5b21b6');
+  topGold.addColorStop(0.5, '#d97706');
+  topGold.addColorStop(1, '#f59e0b');
+  ctx.fillStyle = topGold;
+  ctx.fillRect(0, 0, parentWidth, 4);
 
-  // Diagonal Student Watermark (deters secondary phone camera & tracks leaks)
+  // Diagonal Student Watermark (Purple-Gold micro-stamp)
   if (watermarkText) {
-    ctx.save();
-    ctx.beginPath();
-    roundRect(ctx, 0, 0, parentWidth, totalHeight, 14);
-    ctx.clip();
     ctx.translate(parentWidth / 2, totalHeight / 2);
     ctx.rotate(-0.22);
-    ctx.font = `600 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
-    ctx.fillStyle = 'rgba(148, 163, 184, 0.075)';
+    ctx.font = `700 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
+    ctx.fillStyle = 'rgba(91, 33, 182, 0.06)';
     ctx.textAlign = 'center';
-    const stamp = `${watermarkText}  •  EMBEDX SECURE`;
+    const stamp = `${watermarkText}  •  EEE EMBEDX`;
     for (let y = -totalHeight; y <= totalHeight; y += 38) {
-      for (let x = -parentWidth; x <= parentWidth; x += 240) {
+      for (let x = -parentWidth; x <= parentWidth; x += 220) {
         ctx.fillText(stamp, x, y);
       }
     }
-    ctx.restore();
   }
+  ctx.restore();
 
-  // Category & Question Number pill
-  const catLabel = category ? `Q${questionNumber}/${totalQuestions} · ${category}` : `Question ${questionNumber} of ${totalQuestions}`;
-  ctx.font = `700 11.5px ${fontStack}`;
-  const pillTextWidth = Math.min(ctx.measureText(catLabel).width + 20, maxTextWidth);
-  ctx.fillStyle = 'rgba(14, 165, 233, 0.16)';
+  // Card Border (Gold/Purple)
+  ctx.strokeStyle = 'rgba(217, 119, 6, 0.36)';
+  ctx.lineWidth = 1.25;
+  roundRect(ctx, 0.6, 0.6, parentWidth - 1.2, totalHeight - 1.2, 14);
+  ctx.stroke();
+
+  // Category & Question Number Pill (Royal Purple + Gold)
+  const catLabel = category
+    ? `Q${questionNumber}/${totalQuestions} · ${category}`
+    : `Question ${questionNumber} of ${totalQuestions}`;
+  ctx.font = `800 11.5px ${fontStack}`;
+  const pillTextWidth = Math.min(ctx.measureText(catLabel).width + 22, maxTextWidth);
+
+  ctx.fillStyle = '#f3ecff';
   roundRect(ctx, padX, padTop, pillTextWidth, 24, 999);
   ctx.fill();
 
-  ctx.fillStyle = '#38bdf8';
+  ctx.strokeStyle = 'rgba(217, 119, 6, 0.42)';
+  ctx.lineWidth = 1;
+  roundRect(ctx, padX, padTop, pillTextWidth, 24, 999);
+  ctx.stroke();
+
+  ctx.fillStyle = '#4c1d95';
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'left';
-  ctx.fillText(catLabel, padX + 10, padTop + 12.5);
+  ctx.fillText(catLabel, padX + 11, padTop + 12.5);
 
-  // Subtle anti-OCR micro-noise lines (imperceptible to humans, disrupts automated screen-scrapers)
+  // Subtle anti-OCR micro-pattern
   ctx.save();
-  ctx.strokeStyle = 'rgba(56, 189, 248, 0.04)';
+  ctx.strokeStyle = 'rgba(217, 119, 6, 0.05)';
   ctx.lineWidth = 0.75;
   for (let y = padTop + badgeHeight + 8; y < totalHeight - 10; y += 13) {
     ctx.beginPath();
     ctx.moveTo(padX, y);
-    ctx.lineTo(parentWidth - padX, y + ((y % 2 === 0) ? 2 : -2));
+    ctx.lineTo(parentWidth - padX, y + (y % 2 === 0 ? 2 : -2));
     ctx.stroke();
   }
   ctx.restore();
 
-  // Render Question Text lines crisply
-  ctx.font = `600 ${fontSize}px ${fontStack}`;
-  ctx.fillStyle = '#f8fafc';
+  // Render Question Text in Deep Royal Ink
+  ctx.font = `700 ${fontSize}px ${fontStack}`;
+  ctx.fillStyle = '#1e1035';
   ctx.textBaseline = 'top';
   const startY = padTop + badgeHeight + gapAfterBadge;
 
