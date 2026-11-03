@@ -9,15 +9,21 @@
 import {
   ADMIN_ACCESS,
   DEFAULT_PORTAL_SETTINGS,
+  OFFICIAL_FIREBASE_VERIFY_URL,
   getEffectiveFirebaseConfig,
   isFirebaseConfigured
 } from './firebase-config.js';
 import { DEFAULT_QUESTIONS } from './questions-data.js';
+import {
+  buildCanonicalFirebaseVerifyLink,
+  fetchCertificateJsonFromCams
+} from './cams-client.js';
 
 const STORAGE_KEYS = {
   SETTINGS: 'embedx_portal_settings_v1',
   QUESTIONS: 'embedx_questions_bank_v1',
   SUBMISSIONS: 'embedx_submissions_v1',
+  CERTIFICATES: 'embedx_certificates_v1',
   ACTIVE_SESSIONS: 'embedx_live_sessions_v1',
   ADMIN_SESSION: 'embedx_admin_auth_session_v1'
 };
@@ -176,12 +182,23 @@ export async function getBackendStatus() {
 /* Portal Settings                                                            */
 /* -------------------------------------------------------------------------- */
 
+function sanitizeVerifySetting(settingsObj) {
+  const out = { ...settingsObj };
+  if (
+    !out.camsVerificationUrl ||
+    /script\.google\.com|googleusercontent\.com/i.test(String(out.camsVerificationUrl))
+  ) {
+    out.camsVerificationUrl = OFFICIAL_FIREBASE_VERIFY_URL;
+  }
+  return out;
+}
+
 function getLocalSettings() {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-    if (raw) return { ...DEFAULT_PORTAL_SETTINGS, ...JSON.parse(raw) };
+    if (raw) return sanitizeVerifySetting({ ...DEFAULT_PORTAL_SETTINGS, ...JSON.parse(raw) });
   } catch (_) {}
-  return { ...DEFAULT_PORTAL_SETTINGS };
+  return sanitizeVerifySetting({ ...DEFAULT_PORTAL_SETTINGS });
 }
 
 export async function loadPortalSettings() {
@@ -192,7 +209,7 @@ export async function loadPortalSettings() {
       const ref = doc(ctx.db, 'portal_config', 'main');
       const snap = await getDoc(ref);
       if (snap.exists()) {
-        const merged = { ...DEFAULT_PORTAL_SETTINGS, ...snap.data() };
+        const merged = sanitizeVerifySetting({ ...DEFAULT_PORTAL_SETTINGS, ...snap.data() });
         localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(merged));
         return merged;
       }
@@ -465,6 +482,234 @@ export async function updateSubmissionCertificateStatus(submissionId, certUpdate
       await setDoc(doc(ctx.db, 'submissions', submissionId), certUpdate, { merge: true });
     } catch (_) {}
   }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Direct Firebase Certificate Verification Registry (`certificates/{key}`)   */
+/* -------------------------------------------------------------------------- */
+
+export function certIdToDocKey(certificateId) {
+  return String(certificateId || '')
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, '')
+    .replace(/[^A-Z0-9_-]/g, '_');
+}
+
+function getCandidateCertDocKeys(certificateId) {
+  const primary = certIdToDocKey(certificateId);
+  if (!primary) return [];
+  const keys = new Set([primary]);
+  // Also tolerate legacy trailing-slash prefixes (EEE/EMBX/-2026-0002 <-> EEE/EMBX-2026-0002)
+  keys.add(primary.replace(/_-/g, '-'));
+  keys.add(primary.replace(/EMBX-(\d{4})-/g, 'EMBX_-$1-'));
+  return Array.from(keys).filter(Boolean);
+}
+
+function getLocalCertificatesMap() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS.CERTIFICATES) || '{}') || {};
+  } catch (_) {
+    return {};
+  }
+}
+
+function saveLocalCertificatesMap(map) {
+  try {
+    localStorage.setItem(STORAGE_KEYS.CERTIFICATES, JSON.stringify(map));
+    notifyLocalChange('certificates');
+  } catch (_) {}
+}
+
+/**
+ * Registers an issued certificate in BOTH LocalStorage AND Cloud Firestore (`certificates/{key}`)
+ * with public-safe fields only (never stores private email/mobile/PDF URL in public registry).
+ */
+export async function upsertVerifiedCertificate(record) {
+  const certId = String(record?.certificateId || '').trim();
+  if (!certId) return null;
+
+  const docKey = certIdToDocKey(certId);
+  const publicDoc = {
+    certificateId: certId,
+    status: 'VALID',
+    name: String(record.name || record.fullName || '').trim(),
+    registerNumber: String(record.registerNumber || '').trim(),
+    department: String(record.department || 'EEE').trim(),
+    year: String(record.year || '').trim(),
+    workshop: String(
+      record.workshop || 'Basics of Embedded Systems and Embedded Programming Language'
+    ).trim(),
+    courseName: String(record.courseName || 'EMBEDX Workshop Quiz').trim(),
+    conductedBy: String(
+      record.conductedBy || 'EMBEDX | Embedded Systems & Automation Club'
+    ).trim(),
+    duration: String(record.duration || '1 Day').trim(),
+    issueDate:
+      String(record.issueDate || '').trim() ||
+      new Date().toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric'
+      }),
+    organization: String(
+      record.organization || 'SRM TRP Engineering College · Dept. of EEE'
+    ).trim(),
+    verificationUrl: buildCanonicalFirebaseVerifyLink(certId),
+    syncedAt: new Date().toISOString()
+  };
+
+  const localMap = getLocalCertificatesMap();
+  localMap[docKey] = publicDoc;
+  saveLocalCertificatesMap(localMap);
+
+  const ctx = await initBackend();
+  if (ctx.mode === 'firebase') {
+    try {
+      const { doc, setDoc } = ctx.fsMod;
+      await setDoc(doc(ctx.db, 'certificates', docKey), publicDoc, { merge: true });
+      firestoreCloudHealthy = true;
+    } catch (err) {
+      console.warn('Certificate cached locally (Firestore pending enablement):', err?.message);
+    }
+  }
+  return publicDoc;
+}
+
+/**
+ * Verifies a Certificate ID 100% directly on Firebase (`/verify`) with ZERO redirects:
+ * 1. Cloud Firestore `certificates/{docKey}` (primary registry — ~80ms)
+ * 2. LocalStorage `embedx_certificates_v1` + `embedx_submissions_v1`
+ * 3. Silent anonymous CAMS JSON API fallback (`credentials: 'omit'`, no browser redirect,
+ *    no `/u/5/` Google account bug) for any row generated directly from Google Sheets/Forms,
+ *    auto-caching valid results into Firestore!
+ */
+export async function verifyCertificateDirect(certificateId, settingsInput = null) {
+  const searchedId = String(certificateId || '').trim();
+  if (!searchedId) {
+    return { status: 'EMPTY', certificateId: '' };
+  }
+
+  const candidateKeys = getCandidateCertDocKeys(searchedId);
+  const nowStamp = new Date().toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
+
+  // 1. Check Firebase Cloud Firestore `certificates/{docKey}`
+  const ctx = await initBackend();
+  if (ctx.mode === 'firebase') {
+    try {
+      const { doc, getDoc } = ctx.fsMod;
+      for (const key of candidateKeys) {
+        const snap = await getDoc(doc(ctx.db, 'certificates', key));
+        if (snap.exists()) {
+          firestoreCloudHealthy = true;
+          const data = snap.data();
+          return {
+            ...data,
+            status: data.status === 'SENT' ? 'VALID' : data.status || 'VALID',
+            verifiedAt: nowStamp,
+            source: 'Firebase Cloud Registry'
+          };
+        }
+      }
+    } catch (_) {
+      // Continue to local & JSON API fallback
+    }
+  }
+
+  // 2. Check Local Certificate Cache & Local Submissions (same-device / preview)
+  const localCerts = getLocalCertificatesMap();
+  for (const key of candidateKeys) {
+    if (localCerts[key]) {
+      return {
+        ...localCerts[key],
+        status: 'VALID',
+        verifiedAt: nowStamp,
+        source: 'EMBEDX Portal Registry'
+      };
+    }
+  }
+
+  const wantedFlex = searchedId.toUpperCase().replace(/\s+/g, '').replace(/\/-/g, '-');
+  const localSub = getLocalSubmissions().find((s) => {
+    const sid = String(s.certificateId || '')
+      .trim()
+      .toUpperCase()
+      .replace(/\s+/g, '')
+      .replace(/\/-/g, '-');
+    return sid && sid === wantedFlex;
+  });
+
+  if (localSub) {
+    const settings = settingsInput || (await loadPortalSettings());
+    if (localSub.certificateStatus === 'SENT') {
+      const pub = await upsertVerifiedCertificate({
+        certificateId: localSub.certificateId,
+        name: localSub.fullName,
+        registerNumber: localSub.registerNumber,
+        department: localSub.department || 'EEE',
+        year: localSub.year,
+        workshop: settings.workshopName,
+        courseName: settings.quizTitle,
+        conductedBy: settings.conductedBy,
+        duration: settings.courseDuration,
+        issueDate: localSub.certificateSentAt
+          ? new Date(localSub.certificateSentAt).toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: 'long',
+              year: 'numeric'
+            })
+          : '',
+        organization: settings.organizationName
+      });
+      return {
+        ...pub,
+        status: 'VALID',
+        verifiedAt: nowStamp,
+        source: 'EMBEDX Portal Registry'
+      };
+    }
+    return {
+      status: 'NOT_ISSUED',
+      certificateId: localSub.certificateId,
+      name: localSub.fullName,
+      mailStatus: localSub.certificateStatus || 'Processing',
+      organization: 'SRM TRP Engineering College · Dept. of EEE',
+      verifiedAt: nowStamp
+    };
+  }
+
+  // 3. Silent background JSON API lookup from CAMS Sheet (no browser redirect!)
+  const settings = settingsInput || (await loadPortalSettings());
+  const apiResult = await fetchCertificateJsonFromCams(searchedId, settings);
+  if (apiResult && apiResult.status) {
+    if (apiResult.status === 'VALID') {
+      const cached = await upsertVerifiedCertificate(apiResult);
+      return {
+        ...(cached || apiResult),
+        status: 'VALID',
+        verifiedAt: apiResult.verifiedAt || nowStamp,
+        source: 'Official CAMS Register (Synced to Firebase)'
+      };
+    }
+    return {
+      ...apiResult,
+      verifiedAt: apiResult.verifiedAt || nowStamp
+    };
+  }
+
+  return {
+    status: 'NOT_FOUND',
+    certificateId: searchedId,
+    verifiedAt: nowStamp
+  };
 }
 
 export async function allowStudentRetake(submissionId) {

@@ -371,11 +371,11 @@
 
           <div class="form-grid two-col">
             <div class="field">
-              <label for="cams-webhook-url">CAMS Apps Script Web App URL (<code>/exec</code>)</label>
+              <label for="cams-webhook-url">CAMS Apps Script Webhook URL (Backend PDF + Email Worker)</label>
               <input type="url" id="cams-webhook-url" required />
             </div>
             <div class="field">
-              <label for="cams-verify-url">Public QR Verification Base URL (<code>/exec</code>)</label>
+              <label for="cams-verify-url">Direct Firebase QR Verification URL (<code>/verify</code> — No Redirect)</label>
               <input type="url" id="cams-verify-url" required />
             </div>
             <div class="field">
@@ -402,15 +402,21 @@
         <hr style="border:0; border-top:1px solid rgba(91,33,182,0.14); margin:22px 0;" />
 
         <h4 style="margin:0 0 8px; font-size:15px; color:#3b0764;">
-          One-Time CAMS Bridge Script (<code>QuizWebhook.gs</code>)
+          Updated CAMS Apps Script Files (Direct Firebase QR + Cloud Verification Sync)
         </h4>
-        <p style="margin:0 0 10px; font-size:13px; color:var(--text-secondary);">
-          Open your CAMS Google Form → <strong>⋮ → Script editor</strong>, create a new Script file named <strong><code>QuizWebhook</code></strong>, paste the code below, and click <strong>Deploy → Manage deployments → Edit → Version: New version → Deploy</strong>.
+        <p style="margin:0 0 12px; font-size:13px; color:var(--text-secondary);">
+          Open your CAMS Google Form → <strong>⋮ → Script editor</strong>, replace <strong><code>QRManager.gs</code></strong>, <strong><code>Verification.gs</code></strong>, and <strong><code>Certificate.gs</code></strong>, add/replace <strong><code>QuizWebhook.gs</code></strong>, then click <strong>Deploy → Manage deployments → Edit → Version: New version → Deploy</strong>.
         </p>
-        <div style="display:flex; justify-content:flex-end; margin-bottom:6px;">
-          <button type="button" id="btn-copy-webhook-gs" class="btn btn-secondary btn-sm">Copy QuizWebhook.gs</button>
+        <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px;">
+          <div style="display:flex; gap:6px; flex-wrap:wrap;" id="gs-file-tabs">
+            <button type="button" class="btn btn-primary btn-sm gs-tab-btn" data-gsfile="QRManager.gs">1. QRManager.gs</button>
+            <button type="button" class="btn btn-secondary btn-sm gs-tab-btn" data-gsfile="Verification.gs">2. Verification.gs</button>
+            <button type="button" class="btn btn-secondary btn-sm gs-tab-btn" data-gsfile="Certificate.gs">3. Certificate.gs</button>
+            <button type="button" class="btn btn-secondary btn-sm gs-tab-btn" data-gsfile="QuizWebhook.gs">4. QuizWebhook.gs</button>
+          </div>
+          <button type="button" id="btn-copy-webhook-gs" class="btn btn-gold btn-sm">Copy QRManager.gs</button>
         </div>
-        <pre id="webhook-gs-preview" class="code-block">Loading QuizWebhook.gs...</pre>
+        <pre id="webhook-gs-preview" class="code-block">Loading Apps Script file...</pre>
       </div>
 
       <!-- Firebase Cloud Live Config Card -->

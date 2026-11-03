@@ -4,73 +4,236 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#3b0764" />
-  <title>Verify Certificate · EMBEDX CAMS · SRM TRP Engineering College</title>
+  <title>Official Certificate Verification · EMBEDX · SRM TRP Engineering College</title>
   <link rel="icon" type="image/png" href="/assets/embedx-icon.png" />
   <link rel="stylesheet" href="/css/styles.css" />
+  <style>
+    .verify-crest-banner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 22px 18px 18px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #2e054e 0%, #4c1d95 55%, #6d28d9 100%);
+      border: 1.5px solid rgba(251, 191, 36, 0.55);
+      box-shadow: 0 12px 30px rgba(59, 7, 100, 0.2);
+      color: #ffffff;
+      margin-bottom: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .verify-crest-banner::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #f59e0b, #fde68a, #d97706);
+    }
+    .verify-crest-logo {
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      background: #ffffff;
+      padding: 4px;
+      border: 2.5px solid #fbbf24;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+      object-fit: contain;
+      margin-bottom: 12px;
+    }
+    .verify-crest-kicker {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.3px;
+      text-transform: uppercase;
+      color: #fde68a;
+      margin-bottom: 4px;
+    }
+    .verify-crest-title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+      color: #ffffff;
+    }
+    .verify-crest-sub {
+      margin: 5px 0 0;
+      font-size: 12.5px;
+      color: rgba(255, 255, 255, 0.88);
+    }
+
+    .verify-seal {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+    }
+    .verify-seal.valid {
+      background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+      color: #065f46;
+      border: 1.5px solid #34d399;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.16);
+    }
+    .verify-seal.pending {
+      background: linear-gradient(135deg, #fffbeb, #fef3c7);
+      color: #92400e;
+      border: 1.5px solid #fbbf24;
+    }
+    .verify-seal.invalid {
+      background: linear-gradient(135deg, #fef2f2, #fee2e2);
+      color: #991b1b;
+      border: 1.5px solid #f87171;
+    }
+
+    .cert-id-ribbon {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 16px 0 18px;
+      padding: 13px 16px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #fffbeb 0%, #faf5ff 100%);
+      border: 1.5px solid rgba(217, 119, 6, 0.42);
+    }
+    .cert-id-ribbon-label {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #6b5a8e;
+    }
+    .cert-id-ribbon-code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 16px;
+      font-weight: 900;
+      color: #3b0764;
+      word-break: break-all;
+      margin-top: 2px;
+    }
+
+    .cred-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-top: 6px;
+    }
+    .cred-table tr {
+      border-bottom: 1px solid rgba(91, 33, 182, 0.11);
+    }
+    .cred-table tr:last-child {
+      border-bottom: none;
+    }
+    .cred-table th {
+      width: 38%;
+      text-align: left;
+      padding: 11px 8px 11px 0;
+      color: #6b5a8e;
+      font-weight: 700;
+      font-size: 12.5px;
+      vertical-align: top;
+    }
+    .cred-table td {
+      padding: 11px 0 11px 8px;
+      color: #1e1035;
+      font-weight: 700;
+      word-break: break-word;
+      vertical-align: top;
+    }
+
+    .verify-meta-foot {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px dashed rgba(217, 119, 6, 0.4);
+      font-size: 12px;
+      color: #6b5a8e;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .verify-spinner {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 3.5px solid rgba(91, 33, 182, 0.16);
+      border-top-color: #d97706;
+      border-right-color: #6d28d9;
+      animation: verifySpin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+    @keyframes verifySpin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
   <main class="app-shell">
+    <!-- Top Brand Header (No Admin Link) -->
     <header class="brand-bar">
       <div class="brand-id">
         <div class="brand-emblem">
           <img src="/assets/embedx-icon.png" alt="EMBEDX" />
         </div>
         <div class="brand-titles">
-          <h1>EMBEDX · CAMS Verification</h1>
+          <h1>EMBEDX · Certificate Verification</h1>
           <p>SRM TRP Engineering College · Dept. of EEE</p>
         </div>
       </div>
-      <a href="/" class="header-pill">← Quiz Home</a>
+      <a href="/" class="header-pill">Quiz Portal</a>
     </header>
 
+    <!-- Official Crest Banner -->
+    <section class="verify-crest-banner">
+      <img src="/assets/embedx-logo.png" alt="EMBEDX Official Crest" class="verify-crest-logo" />
+      <div class="verify-crest-kicker">Official Digital Credential Registry</div>
+      <h2 class="verify-crest-title">EMBEDX Certificate Verification</h2>
+      <p class="verify-crest-sub">
+        Department of Electrical &amp; Electronics Engineering · SRM TRP Engineering College
+      </p>
+    </section>
+
+    <!-- Dynamic Verification Result Card (Rendered Directly on Firebase — No Redirect!) -->
+    <section id="verify-result-card" class="card hidden" aria-live="polite"></section>
+
+    <!-- Certificate ID Lookup Card -->
     <section class="card">
-      <div class="hero-chip">Public Certificate Registry</div>
-      <h2 class="card-title">Verify Workshop Certificate</h2>
+      <div class="hero-chip">Direct Firebase Verification</div>
+      <h3 class="card-title" style="font-size: 19px;">Verify a Certificate ID</h3>
       <p class="card-subtitle">
-        Enter the Certificate ID printed on the participant's certificate (or scan the QR code on the PDF) to verify authenticity against the official CAMS register.
+        Scan the QR code printed on any EMBEDX workshop certificate, or enter the Certificate ID below to verify authenticity instantly on this page.
       </p>
 
-      <form id="verify-form">
+      <form id="verify-form" novalidate>
         <div class="field">
           <label for="cert-id-input">Certificate ID <span class="req">*</span></label>
           <input
             type="text"
             id="cert-id-input"
-            placeholder="e.g. EEE/EMBX/-2026-0003"
+            placeholder="e.g. EEE/EMBX-2026-0004"
+            autocomplete="off"
+            spellcheck="false"
             required
           />
-          <span class="field-hint">Case-insensitive. Matches the official CAMS Google Sheet record.</span>
+          <span class="field-hint">
+            Case-insensitive · Verifies directly against the official EMBEDX Cloud Registry without leaving this page.
+          </span>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-full" style="margin-top: 16px;">
-          Verify in Official CAMS Register ↗
+        <button type="submit" id="btn-verify-submit" class="btn btn-primary btn-full" style="margin-top: 16px;">
+          Verify Certificate Authenticity
         </button>
       </form>
     </section>
   </main>
 
-  <script type="module">
-    import { loadPortalSettings } from '/js/db-service.js';
-    import { buildVerificationLink } from '/js/cams-client.js';
-
-    const params = new URLSearchParams(window.location.search);
-    const prefill = params.get('certificateId') || params.get('id') || '';
-    const input = document.getElementById('cert-id-input');
-    if (prefill) input.value = prefill;
-
-    document.getElementById('verify-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const certId = input.value.trim();
-      if (!certId) return;
-      const settings = await loadPortalSettings();
-      const url = buildVerificationLink(
-        settings.camsVerificationUrl || settings.camsWebhookUrl,
-        certId
-      );
-      if (url) {
-        window.open(url, '_blank', 'noopener');
-      }
-    });
-  </script>
+  <script type="module" src="/js/verify-app.js"></script>
 </body>
 </html>

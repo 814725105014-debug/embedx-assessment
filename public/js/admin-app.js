@@ -15,7 +15,8 @@ import {
   savePortalSettings,
   saveQuestions,
   subscribeToAdminData,
-  updateSubmissionCertificateStatus
+  updateSubmissionCertificateStatus,
+  upsertVerifiedCertificate
 } from './db-service.js';
 import {
   buildCamsCompatibleCsv,
@@ -30,6 +31,7 @@ let questions = [];
 let allSubmissions = [];
 let liveSessions = [];
 let unsubData = null;
+let activeGsFileName = 'QRManager.gs';
 
 const loginView = document.getElementById('admin-login-view');
 const dashView = document.getElementById('admin-dashboard-view');
@@ -280,7 +282,14 @@ function bindDashboardEvents() {
   document.getElementById('btn-copy-webhook-gs').addEventListener('click', async () => {
     const code = document.getElementById('webhook-gs-preview').textContent;
     await navigator.clipboard.writeText(code);
-    showToast('Copied QuizWebhook.gs to clipboard!');
+    showToast(`Copied ${activeGsFileName} to clipboard!`);
+  });
+
+  document.querySelectorAll('.gs-tab-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const fileName = btn.dataset.gsfile;
+      loadWebhookScriptPreview(fileName);
+    });
   });
 
   // Firebase Runtime Config Box (Tab 4)
@@ -535,6 +544,20 @@ async function handleSingleCertificateIssue(submission, btnEl) {
         certificateSentAt: new Date().toISOString(),
         certificateError: ''
       });
+      if (res.certificateId) {
+        await upsertVerifiedCertificate({
+          certificateId: res.certificateId,
+          name: submission.fullName,
+          registerNumber: submission.registerNumber,
+          department: submission.department || 'EEE',
+          year: submission.year,
+          workshop: settings.workshopName,
+          courseName: settings.quizTitle,
+          conductedBy: settings.conductedBy,
+          duration: settings.courseDuration,
+          organization: settings.organizationName
+        });
+      }
       showToast(`Certificate ${res.certificateId} sent to ${submission.email}!`);
     } else {
       await updateSubmissionCertificateStatus(submission.id, {
@@ -573,6 +596,20 @@ async function handleBulkIssueCertificates() {
         certificateSentAt: new Date().toISOString(),
         certificateError: ''
       });
+      if (res.certificateId) {
+        await upsertVerifiedCertificate({
+          certificateId: res.certificateId,
+          name: pending[i].fullName,
+          registerNumber: pending[i].registerNumber,
+          department: pending[i].department || 'EEE',
+          year: pending[i].year,
+          workshop: settings.workshopName,
+          courseName: settings.quizTitle,
+          conductedBy: settings.conductedBy,
+          duration: settings.courseDuration,
+          organization: settings.organizationName
+        });
+      }
     } else {
       lastErr = res.message;
       await updateSubmissionCertificateStatus(pending[i].id, {
@@ -615,7 +652,7 @@ function openSubmissionModal(s) {
     : `<div style="font-size:13px; color:#047857; font-weight:600;">✓ Zero security violations recorded.</div>`;
 
   const verifyUrl = s.certificateId
-    ? buildVerificationLink(settings.camsVerificationUrl || settings.camsWebhookUrl, s.certificateId)
+    ? buildVerificationLink(settings.camsVerificationUrl, s.certificateId)
     : '';
 
   const breakdownHtml = Array.isArray(s.breakdown)
@@ -806,9 +843,18 @@ async function handleSaveQuestionModal(e) {
 /* Utilities                                                                  */
 /* -------------------------------------------------------------------------- */
 
-async function loadWebhookScriptPreview() {
+async function loadWebhookScriptPreview(fileName = 'QRManager.gs') {
+  activeGsFileName = fileName;
+  const copyBtn = document.getElementById('btn-copy-webhook-gs');
+  if (copyBtn) copyBtn.textContent = `Copy ${fileName}`;
+
+  document.querySelectorAll('.gs-tab-btn').forEach((btn) => {
+    const isActive = btn.dataset.gsfile === fileName;
+    btn.className = `btn ${isActive ? 'btn-primary' : 'btn-secondary'} btn-sm gs-tab-btn`;
+  });
+
   try {
-    const res = await fetch('/assets/QuizWebhook.gs.txt');
+    const res = await fetch(`/assets/${encodeURIComponent(fileName)}.txt`);
     if (res.ok) {
       document.getElementById('webhook-gs-preview').textContent = await res.text();
     }

@@ -12,7 +12,8 @@ import {
   recordQuizSubmission,
   removeActiveSession,
   updateSubmissionCertificateStatus,
-  upsertActiveSession
+  upsertActiveSession,
+  upsertVerifiedCertificate
 } from './db-service.js';
 import { renderProtectedQuestionCanvas } from './canvas-shield.js';
 import { ExamProctor } from './proctor.js';
@@ -718,6 +719,20 @@ async function finalizeQuizSubmission(submitReason = 'Manual Submit', isAutoSubm
         };
 
     await updateSubmissionCertificateStatus(savedRecord.id, certPatch);
+    if (camsResult.ok && camsResult.certificateId) {
+      await upsertVerifiedCertificate({
+        certificateId: camsResult.certificateId,
+        name: savedRecord.fullName,
+        registerNumber: savedRecord.registerNumber,
+        department: savedRecord.department || FIXED_DEPARTMENT,
+        year: savedRecord.year,
+        workshop: settings.workshopName,
+        courseName: settings.quizTitle,
+        conductedBy: settings.conductedBy,
+        duration: settings.courseDuration,
+        organization: settings.organizationName || FIXED_COLLEGE
+      });
+    }
     renderCertificateBanner({ ...savedRecord, ...certPatch });
   } else {
     renderCertificateBanner(savedRecord);
@@ -835,7 +850,7 @@ function renderCertificateBanner(record) {
       idRow.classList.remove('hidden');
       idVal.textContent = record.certificateId;
       verifyBtn.href = buildVerificationLink(
-        settings.camsVerificationUrl || settings.camsWebhookUrl,
+        settings.camsVerificationUrl,
         record.certificateId
       );
       if (record.certificatePdfUrl) {

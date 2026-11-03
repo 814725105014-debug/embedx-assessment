@@ -1,16 +1,16 @@
 /**
  * CAMS (Certificate Automation Management System) Client Bridge
  *
- * Connects the EMBEDX Quiz Portal to the Google Apps Script CAMS Web App
- * (SRM TRP Engineering College — Course Completion Certificate Generator).
- *
- * Uses Content-Type: text/plain;charset=utf-8 for POST requests so browsers send
- * a CORS simple request without an OPTIONS preflight (Google Apps Script Web Apps
- * do not support OPTIONS preflight requests, only GET/POST).
+ * - Triggers backend PDF + Firebase-QR + Gmail delivery via QuizWebhook.gs (doPost)
+ * - Generates direct Firebase verification links (`/verify?certificateId=...`) — NEVER Apps Script URLs
+ * - Provides silent JSON API lookup (`credentials: 'omit'`) as a background fallback for `/verify`
+ *   with ZERO browser redirects and ZERO Google `/u/5/` multi-account routing issues!
  */
 
+import { OFFICIAL_FIREBASE_VERIFY_URL } from './firebase-config.js';
+
 export async function issueCamsCertificate(submission, settings) {
-  const webhookUrl = String(settings?.camsWebhookUrl || '').trim();
+  const webhookUrl = sanitizeAppsScriptEndpoint(settings?.camsWebhookUrl);
   if (!settings?.camsEnabled || !webhookUrl) {
     return {
       ok: false,
@@ -26,13 +26,17 @@ export async function issueCamsCertificate(submission, settings) {
       email: String(submission.email || '').trim().toLowerCase(),
       name: String(submission.fullName || '').trim(),
       registerNumber: String(submission.registerNumber || '').trim(),
-      department: String(submission.department || '').trim(),
+      department: String(submission.department || 'EEE').trim(),
       year: String(submission.year || '').trim(),
-      college: String(submission.college || '').trim(),
+      college: String(submission.college || 'SRM TRP Engineering College').trim(),
       phone: String(submission.phone || '').trim(),
-      workshop: String(settings.workshopName || 'Basics of Embedded Systems and Embedded Programming Language').trim(),
+      workshop: String(
+        settings.workshopName || 'Basics of Embedded Systems and Embedded Programming Language'
+      ).trim(),
       courseName: String(settings.quizTitle || 'EMBEDX Workshop Quiz').trim(),
-      conductedBy: String(settings.conductedBy || 'EMBEDX | Embedded Systems & Automation Club').trim(),
+      conductedBy: String(
+        settings.conductedBy || 'EMBEDX | Embedded Systems & Automation Club'
+      ).trim(),
       duration: String(settings.courseDuration || '1 Day').trim(),
       score: Number(submission.score || 0),
       totalQuestions: Number(submission.totalQuestions || 30),
@@ -47,6 +51,8 @@ export async function issueCamsCertificate(submission, settings) {
 
     const response = await fetch(webhookUrl, {
       method: 'POST',
+      mode: 'cors',
+      credentials: 'omit',
       headers: {
         'Content-Type': 'text/plain;charset=utf-8'
       },
@@ -70,12 +76,11 @@ export async function issueCamsCertificate(submission, settings) {
         status: parsed.status || 'SENT',
         certificateId: parsed.certificateId || '',
         pdfUrl: parsed.pdfUrl || '',
-        verificationUrl: buildVerificationLink(settings.camsVerificationUrl || webhookUrl, parsed.certificateId),
-        message: parsed.message || 'Certificate generated and emailed via CAMS.'
+        verificationUrl: buildCanonicalFirebaseVerifyLink(parsed.certificateId),
+        message: parsed.message || 'Certificate generated with Firebase QR and emailed via CAMS.'
       };
     }
 
-    // Detect when CAMS Web App exists (doGet works) but QuizWebhook.gs (doPost) hasn't been deployed yet
     if (
       rawText.includes('Script function not found: doPost') ||
       rawText.includes('Page Not Found') ||
@@ -86,7 +91,7 @@ export async function issueCamsCertificate(submission, settings) {
         ok: false,
         status: 'QUEUED_WEBHOOK_SETUP_NEEDED',
         message:
-          'Queued for CAMS: Add QuizWebhook.gs (doPost) to your CAMS Apps Script & create a New Deployment Version, then click "Send Pending Certificates" in Admin.'
+          'Queued for CAMS: Add QuizWebhook.gs (doPost) to your CAMS Apps Script & create a New Deployment Version, then click "Issue All Pending Certificates" in Admin.'
       };
     }
 
@@ -108,7 +113,7 @@ export async function issueCamsCertificate(submission, settings) {
 }
 
 export async function pingCamsWebhook(settings) {
-  const webhookUrl = String(settings?.camsWebhookUrl || '').trim();
+  const webhookUrl = sanitizeAppsScriptEndpoint(settings?.camsWebhookUrl);
   if (!webhookUrl) {
     return { ok: false, message: 'CAMS Webhook URL is empty.' };
   }
@@ -116,6 +121,8 @@ export async function pingCamsWebhook(settings) {
   try {
     const response = await fetch(webhookUrl, {
       method: 'POST',
+      mode: 'cors',
+      credentials: 'omit',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
         action: 'ping',
@@ -127,9 +134,10 @@ export async function pingCamsWebhook(settings) {
     try {
       const json = JSON.parse(text);
       if (json && json.ok) {
+        const qrInfo = json.qrVerifyBaseUrl ? ` · QR Target: ${json.qrVerifyBaseUrl}` : '';
         return {
           ok: true,
-          message: `Connected to CAMS! Sheet: "${json.sheetName || 'Form Responses 1'}" · Prefix: "${json.prefix || 'EEE/EMBX/'}"`
+          message: `Connected to CAMS! Sheet: "${json.sheetName || 'Form Responses 1'}" · Prefix: "${json.prefix || 'EEE/EMBX'}"${qrInfo}`
         };
       }
       return { ok: false, message: json?.error || 'CAMS responded with an error.' };
@@ -139,14 +147,14 @@ export async function pingCamsWebhook(settings) {
           ok: false,
           needsDoPost: true,
           message:
-            'Your CAMS Web App URL is reachable, but doPost() is not deployed yet! Paste QuizWebhook.gs into your CAMS Apps Script editor and click Deploy -> Manage deployments -> Edit -> New version.'
+            'Your CAMS Web App URL is reachable, but doPost() is not deployed yet! Paste the updated Apps Script files and click Deploy -> Manage deployments -> Edit -> New version.'
         };
       }
       return {
         ok: false,
         needsDoPost: true,
         message:
-          'Reached Google Apps Script HTML response instead of JSON. Paste QuizWebhook.gs and deploy a New Version with "Who has access: Anyone".'
+          'Reached Google Apps Script HTML response instead of JSON. Paste QuizWebhook.gs & Verification.gs and deploy a New Version with "Who has access: Anyone".'
       };
     }
   } catch (err) {
@@ -158,17 +166,115 @@ export async function pingCamsWebhook(settings) {
   }
 }
 
-export function buildVerificationLink(baseUrl, certificateId) {
-  if (!baseUrl || !certificateId) return '';
-  const cleanBase = String(baseUrl).trim().replace(/[?&]certificateId=.*$/i, '').replace(/\/+$/, '');
-  const sep = cleanBase.includes('?') ? '&' : '?';
-  return `${cleanBase}${sep}certificateId=${encodeURIComponent(certificateId)}`;
+/**
+ * Silent background JSON lookup against CAMS Apps Script (`credentials: 'omit'`).
+ * Used ONLY as a background data fallback by `/verify` if a certificate row was
+ * generated directly from Google Sheets/Forms before Firestore sync — NEVER redirects the browser!
+ */
+export async function fetchCertificateJsonFromCams(certificateId, settings) {
+  const webhookUrl = sanitizeAppsScriptEndpoint(settings?.camsWebhookUrl);
+  const cleanId = String(certificateId || '').trim();
+  if (!webhookUrl || !cleanId) return null;
+
+  // Attempt 1: Anonymous GET ?format=json&certificateId=... (Verification.gs)
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+    const sep = webhookUrl.includes('?') ? '&' : '?';
+    const res = await fetch(
+      `${webhookUrl}${sep}format=json&certificateId=${encodeURIComponent(cleanId)}`,
+      {
+        method: 'GET',
+        mode: 'cors',
+        credentials: 'omit',
+        redirect: 'follow',
+        signal: controller.signal
+      }
+    );
+    clearTimeout(timer);
+    const txt = await res.text();
+    const json = JSON.parse(txt);
+    if (json && json.status) return json;
+  } catch (_) {
+    // Fall through to POST action: 'verify'
+  }
+
+  // Attempt 2: Anonymous POST { action: 'verify', certificateId } (QuizWebhook.gs)
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+    const res = await fetch(webhookUrl, {
+      method: 'POST',
+      mode: 'cors',
+      credentials: 'omit',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'verify', certificateId: cleanId }),
+      redirect: 'follow',
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+    const txt = await res.text();
+    const json = JSON.parse(txt);
+    if (json && json.status) return json;
+  } catch (_) {}
+
+  return null;
 }
 
 /**
- * Exports submissions as a CSV formatted to match the EXACT columns of
+ * Strips any accidental `/u/5/` or `/a/macros/<domain>/` from a backend Apps Script endpoint
+ * so anonymous `fetch(..., { credentials: 'omit' })` always hits `/macros/s/<ID>/exec`.
+ */
+export function sanitizeAppsScriptEndpoint(rawUrl) {
+  const raw = String(rawUrl || '').trim();
+  if (!raw) return '';
+  return raw
+    .replace(/\/macros\/u\/\d+\/s\//i, '/macros/s/')
+    .replace(/\/a\/macros\/[^/]+\/s\//i, '/macros/s/');
+}
+
+/**
+ * Canonical public Firebase verification URL encoded onto QR codes.
+ */
+export function buildCanonicalFirebaseVerifyLink(certificateId) {
+  if (!certificateId) return OFFICIAL_FIREBASE_VERIFY_URL;
+  return `${OFFICIAL_FIREBASE_VERIFY_URL}?certificateId=${encodeURIComponent(
+    String(certificateId).trim()
+  )}`;
+}
+
+/**
+ * Builds an in-app certificate verification link that ALWAYS stays on Firebase / current portal
+ * (`/verify?certificateId=...`) and NEVER points to `script.google.com`.
+ */
+export function buildVerificationLink(baseUrl, certificateId) {
+  const cleanId = String(certificateId || '').trim();
+  let effectiveBase = String(baseUrl || '').trim();
+
+  // Never allow Apps Script URLs as verification links
+  if (!effectiveBase || /script\.google\.com|googleusercontent\.com/i.test(effectiveBase)) {
+    effectiveBase =
+      typeof window !== 'undefined' && window.location?.origin
+        ? `${window.location.origin}/verify`
+        : OFFICIAL_FIREBASE_VERIFY_URL;
+  } else if (
+    typeof window !== 'undefined' &&
+    window.location?.origin &&
+    !/embedx-assessment\.(web\.app|firebaseapp\.com)/i.test(window.location.hostname)
+  ) {
+    // Keep preview clicks inside the active preview host
+    effectiveBase = `${window.location.origin}/verify`;
+  }
+
+  const cleanBase = effectiveBase.replace(/[?&]certificateId=.*$/i, '').replace(/\/+$/, '');
+  if (!cleanId) return cleanBase;
+  const sep = cleanBase.includes('?') ? '&' : '?';
+  return `${cleanBase}${sep}certificateId=${encodeURIComponent(cleanId)}`;
+}
+
+/**
+ * Exports submissions as a CSV formatted to match the EXACT 18 columns of
  * the live CAMS Google Sheet ('Form Responses 1' in 1jiVDFpIxGwfSlHBt3vaHl-5GFd8DPGapSS4tsR-FhJQ)
- * so Admin can also paste/import rows directly into CAMS if Gmail daily quota is ever reached!
  */
 export function buildCamsCompatibleCsv(submissions, settings) {
   const headers = [
@@ -176,6 +282,8 @@ export function buildCamsCompatibleCsv(submissions, settings) {
     'Email Address',
     'Participant Full Name ',
     '  Register Number  ',
+    'Mobile Number',
+    'Year of Study ',
     'Workshop',
     '  Department  ',
     '  Course Name  ',
@@ -196,7 +304,11 @@ export function buildCamsCompatibleCsv(submissions, settings) {
 
   const rows = submissions.map((s) => {
     const dt = s.submittedAt ? new Date(s.submittedAt) : new Date();
-    const formattedTs = `${dt.getMonth() + 1}/${dt.getDate()}/${dt.getFullYear()} ${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}:${String(dt.getSeconds()).padStart(2, '0')}`;
+    const formattedTs = `${dt.getMonth() + 1}/${dt.getDate()}/${dt.getFullYear()} ${String(
+      dt.getHours()
+    ).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}:${String(
+      dt.getSeconds()
+    ).padStart(2, '0')}`;
     const issueDate = dt.toLocaleDateString('en-GB', {
       day: '2-digit',
       month: 'long',
@@ -207,8 +319,10 @@ export function buildCamsCompatibleCsv(submissions, settings) {
       s.email || '',
       s.fullName || '',
       s.registerNumber || '',
+      s.phone || '',
+      s.year || '',
       settings?.workshopName || 'Basics of Embedded Systems and Embedded Programming Language',
-      s.department || '',
+      s.department || 'EEE',
       settings?.quizTitle || 'EMBEDX Workshop Quiz',
       settings?.conductedBy || 'EMBEDX | Embedded Systems & Automation Club',
       settings?.courseDuration || '1 Day',

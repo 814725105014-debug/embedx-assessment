@@ -15,6 +15,26 @@ service cloud.firestore {
       allow write: if isAuthorizedAdmin();
     }
 
+    // Public Certificate Verification Registry (/verify?certificateId=...):
+    // - Anyone scanning a certificate QR code can verify a specific certificate by ID (`get`)
+    //   directly on Firebase with zero Google login and zero Apps Script redirect!
+    // - Full collection listing (`list`) and deletion (`delete`) are locked to Admin only.
+    // - Issued certificates can be registered by CAMS Apps Script / Quiz Portal with public-safe fields only.
+    match /certificates/{certKey} {
+      allow get: if true;
+      allow list, delete: if isAuthorizedAdmin();
+
+      allow create: if request.resource.data.certificateId is string
+        && request.resource.data.certificateId.size() >= 4
+        && request.resource.data.name is string
+        && request.resource.data.status in ['VALID', 'SENT'];
+
+      allow update: if isAuthorizedAdmin() || (
+        request.resource.data.certificateId == resource.data.certificateId
+        && request.resource.data.status in ['VALID', 'SENT']
+      );
+    }
+
     // Live active exam proctoring telemetry
     match /active_sessions/{sessionId} {
       allow create, update, delete: if true;

@@ -13,6 +13,8 @@ export const FIREBASE_CONFIG = {
   measurementId: "G-S94VH65XXC"
 };
 
+export const OFFICIAL_FIREBASE_VERIFY_URL = 'https://embedx-assessment.web.app/verify';
+
 /**
  * Checks whether an admin runtime override exists, otherwise returns live FIREBASE_CONFIG.
  */
@@ -78,12 +80,12 @@ export const DEFAULT_PORTAL_SETTINGS = {
   // Certificate policy: 'all_completions' | 'min_score' | 'manual_only'
   certificateMode: 'all_completions',
   minScorePercentForCert: 0,
-  // CAMS Google Apps Script Web App integration
+  // CAMS Google Apps Script Web App integration (backend PDF + Gmail worker)
   camsEnabled: true,
   camsWebhookUrl:
     'https://script.google.com/macros/s/AKfycbxQcAOxGv7alzmzSCwlXet5EeUA2_vXGBsLcUk6GPN1WEwX5LdLYgyNMcoJgOS1tXNe/exec',
-  camsVerificationUrl:
-    'https://script.google.com/macros/s/AKfycbxQcAOxGv7alzmzSCwlXet5EeUA2_vXGBsLcUk6GPN1WEwX5LdLYgyNMcoJgOS1tXNe/exec',
+  // Direct Firebase Verification URL encoded in QR codes (NEVER Apps Script!)
+  camsVerificationUrl: OFFICIAL_FIREBASE_VERIFY_URL,
   camsApiSecret: 'EMBEDX-SRMTRP-2026',
   collegeLogoDriveId: '1FEmwo2vGwZA4h_Os0kBBm5ad3eiCRBal'
 };
