@@ -28,3 +28,11 @@ Open your CAMS Google Form → **⋮ (top-right)** → **Script editor**, then u
 1. Press **Ctrl + S** to save all files.
 2. Click **Deploy** (top-right) → **Manage deployments** → click the **Pencil (Edit)** icon → **Version: New version** → **Who has access: Anyone** → **Deploy**.
 3. *(Optional backfill)* If you ever have existing `Sent` rows in `'Form Responses 1'`, select **`syncAllCertificatesToFirebase`** in the toolbar dropdown and click **Run** once.
+
+## Firestore access and deployment prerequisites
+
+Certificate registry writes must be authenticated. In `appsscript.json`, add `https://www.googleapis.com/auth/datastore` to the existing `oauthScopes` array (keep all existing scopes). Authorize the script again when prompted. The Google account executing the web app and the account running backfill must have an appropriate Firestore IAM role (for example Cloud Datastore User) on `embedx-assessment`. The sync uses that account's OAuth token; an API key alone is not authorization. Check Apps Script execution logs for sync errors.
+
+Deploy BOTH Hosting and Firestore rules with the Firebase CLI: `firebase deploy --only hosting,firestore:rules --project embedx-assessment`. The GitHub workflow deploys Hosting only when its service-account secret is configured; pushing to GitHub does not by itself deploy rules. Verify with a new certificate and on a separate device. Existing PDF QR codes cannot be changed retroactively; regenerate/reissue them if they contain the old URL.
+
+Security note: the quiz webhook secret is present in browser-delivered code and is not a real secret. Do not rely on it to authorize certificate issuance. Protect issuance with a trusted backend and server-side credentials before production use.

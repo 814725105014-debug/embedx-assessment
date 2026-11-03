@@ -603,11 +603,13 @@ export async function verifyCertificateDirect(certificateId, settingsInput = nul
 
   // 1. Check Firebase Cloud Firestore `certificates/{docKey}`
   const ctx = await initBackend();
+  let registryReachable = false;
   if (ctx.mode === 'firebase') {
     try {
       const { doc, getDoc } = ctx.fsMod;
       for (const key of candidateKeys) {
         const snap = await getDoc(doc(ctx.db, 'certificates', key));
+        registryReachable = true;
         if (snap.exists()) {
           firestoreCloudHealthy = true;
           const data = snap.data();
@@ -624,79 +626,16 @@ export async function verifyCertificateDirect(certificateId, settingsInput = nul
     }
   }
 
-  // 2. Check Local Certificate Cache & Local Submissions (same-device / preview)
-  const localCerts = getLocalCertificatesMap();
-  for (const key of candidateKeys) {
-    if (localCerts[key]) {
-      return {
-        ...localCerts[key],
-        status: 'VALID',
-        verifiedAt: nowStamp,
-        source: 'EMBEDX Portal Registry'
-      };
-    }
-  }
-
-  const wantedFlex = searchedId.toUpperCase().replace(/\s+/g, '').replace(/\/-/g, '-');
-  const localSub = getLocalSubmissions().find((s) => {
-    const sid = String(s.certificateId || '')
-      .trim()
-      .toUpperCase()
-      .replace(/\s+/g, '')
-      .replace(/\/-/g, '-');
-    return sid && sid === wantedFlex;
-  });
-
-  if (localSub) {
-    const settings = settingsInput || (await loadPortalSettings());
-    if (localSub.certificateStatus === 'SENT') {
-      const pub = await upsertVerifiedCertificate({
-        certificateId: localSub.certificateId,
-        name: localSub.fullName,
-        registerNumber: localSub.registerNumber,
-        department: localSub.department || 'EEE',
-        year: localSub.year,
-        workshop: settings.workshopName,
-        courseName: settings.quizTitle,
-        conductedBy: settings.conductedBy,
-        duration: settings.courseDuration,
-        issueDate: localSub.certificateSentAt
-          ? new Date(localSub.certificateSentAt).toLocaleDateString('en-GB', {
-              day: '2-digit',
-              month: 'long',
-              year: 'numeric'
-            })
-          : '',
-        organization: settings.organizationName
-      });
-      return {
-        ...pub,
-        status: 'VALID',
-        verifiedAt: nowStamp,
-        source: 'EMBEDX Portal Registry'
-      };
-    }
-    return {
-      status: 'NOT_ISSUED',
-      certificateId: localSub.certificateId,
-      name: localSub.fullName,
-      mailStatus: localSub.certificateStatus || 'Processing',
-      organization: 'SRM TRP Engineering College · Dept. of EEE',
-      verifiedAt: nowStamp
-    };
-  }
-
   // 3. Silent background JSON API lookup from CAMS Sheet (no browser redirect!)
   const settings = settingsInput || (await loadPortalSettings());
   const apiResult = await fetchCertificateJsonFromCams(searchedId, settings);
   if (apiResult && apiResult.status) {
     if (apiResult.status === 'VALID') {
-      const cached = await upsertVerifiedCertificate(apiResult);
       return {
-        ...(cached || apiResult),
+        ...apiResult,
         status: 'VALID',
         verifiedAt: apiResult.verifiedAt || nowStamp,
-        source: 'Official CAMS Register (Synced to Firebase)'
+        source: 'Official CAMS Register'
       };
     }
     return {
@@ -706,7 +645,7 @@ export async function verifyCertificateDirect(certificateId, settingsInput = nul
   }
 
   return {
-    status: 'NOT_FOUND',
+    status: registryReachable ? 'NOT_FOUND' : 'UNAVAILABLE',
     certificateId: searchedId,
     verifiedAt: nowStamp
   };

@@ -141,7 +141,7 @@ function renderVerificationResult(res) {
           </tr>
           <tr>
             <th>Certificate Status</th>
-            <td style="color:#047857;">✓ Issued, Delivered &amp; Active</td>
+            <td style="color:#047857;">✓ Issued</td>
           </tr>
         </tbody>
       </table>
@@ -181,6 +181,11 @@ function renderVerificationResult(res) {
         Checked on ${escapeHtml(res.verifiedAt || '')} · EMBEDX Official Registry
       </div>
     `;
+    return;
+  }
+
+  if (res.status === 'UNAVAILABLE') {
+    resultCard.innerHTML = '<span class="verify-seal pending">Verification unavailable</span><p>We could not reach the certificate registry. Please try again later.</p>';
     return;
   }
 
@@ -227,7 +232,7 @@ async function runVerification(rawId, pushUrl = true) {
     resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   } catch (err) {
     renderVerificationResult({
-      status: 'NOT_FOUND',
+      status: 'UNAVAILABLE',
       certificateId: certId,
       verifiedAt: new Date().toLocaleString('en-IN')
     });

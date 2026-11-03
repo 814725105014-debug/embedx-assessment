@@ -91,6 +91,7 @@ function syncCertificateObjectToFirebase_(record) {
   const response = UrlFetchApp.fetch(url, {
     method: 'patch',
     contentType: 'application/json',
+    headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() },
     payload: JSON.stringify(firestoreDoc),
     muteHttpExceptions: true
   });

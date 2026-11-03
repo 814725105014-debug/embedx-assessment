@@ -24,15 +24,8 @@ service cloud.firestore {
       allow get: if true;
       allow list, delete: if isAuthorizedAdmin();
 
-      allow create: if request.resource.data.certificateId is string
-        && request.resource.data.certificateId.size() >= 4
-        && request.resource.data.name is string
-        && request.resource.data.status in ['VALID', 'SENT'];
-
-      allow update: if isAuthorizedAdmin() || (
-        request.resource.data.certificateId == resource.data.certificateId
-        && request.resource.data.status in ['VALID', 'SENT']
-      );
+      // Never allow anonymous registration: it would enable forged certificates.
+      allow create, update: if isAuthorizedAdmin();
     }
 
     // Live active exam proctoring telemetry
