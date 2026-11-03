@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#070c18" />
+  <title>Verify Certificate · EMBEDX CAMS · SRM TRP Engineering College</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="brand-bar">
+      <div class="brand-id">
+        <div class="brand-emblem">EX</div>
+        <div class="brand-titles">
+          <h1>EMBEDX · CAMS Verification</h1>
+          <p>SRM TRP Engineering College · Dept. of EEE</p>
+        </div>
+      </div>
+      <a href="/" class="admin-link-pill">← Quiz Home</a>
+    </header>
+
+    <section class="card">
+      <div class="hero-chip">Public Certificate Registry</div>
+      <h2 class="card-title">Verify Workshop Certificate</h2>
+      <p class="card-subtitle">
+        Enter the Certificate ID printed on the participant's certificate (or scan the QR code on the PDF) to verify authenticity against the official CAMS register.
+      </p>
+
+      <form id="verify-form">
+        <div class="field">
+          <label for="cert-id-input">Certificate ID <span class="req">*</span></label>
+          <input
+            type="text"
+            id="cert-id-input"
+            placeholder="e.g. EEE/EMBX/-2026-0003"
+            required
+          />
+          <span class="field-hint">Case-insensitive. Matches the official CAMS Google Sheet record.</span>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full" style="margin-top: 16px;">
+          Verify in Official CAMS Register ↗
+        </button>
+      </form>
+    </section>
+  </main>
+
+  <script type="module">
+    import { loadPortalSettings } from '/js/db-service.js';
+    import { buildVerificationLink } from '/js/cams-client.js';
+
+    const params = new URLSearchParams(window.location.search);
+    const prefill = params.get('certificateId') || params.get('id') || '';
+    const input = document.getElementById('cert-id-input');
+    if (prefill) input.value = prefill;
+
+    document.getElementById('verify-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const certId = input.value.trim();
+      if (!certId) return;
+      const settings = await loadPortalSettings();
+      const url = buildVerificationLink(
+        settings.camsVerificationUrl || settings.camsWebhookUrl,
+        certId
+      );
+      if (url) {
+        window.open(url, '_blank', 'noopener');
+      }
+    });
+  </script>
+</body>
+</html>

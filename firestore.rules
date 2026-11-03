@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Strictly locks all administrative privileges to the single authorized SRM TRP coordinator email
+    function isAuthorizedAdmin() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && request.auth.token.email.lower() == '814725105014@trp.srmtrichy.edu.in';
+    }
+
+    // Quiz settings & question bank: readable by test-takers, editable ONLY by the Admin
+    match /portal_config/{docId} {
+      allow read: if true;
+      allow write: if isAuthorizedAdmin();
+    }
+
+    // Live active exam proctoring telemetry
+    match /active_sessions/{sessionId} {
+      allow create, update, delete: if true;
+      allow read: if isAuthorizedAdmin();
+    }
+
+    // Register-number uniqueness index (prevents same Reg No submitting under a 2nd email)
+    match /reg_locks/{regNo} {
+      allow get: if true;
+      allow create: if !exists(/databases/$(database)/documents/reg_locks/$(regNo));
+      allow update, delete, list: if isAuthorizedAdmin();
+    }
+
+    // Student quiz submissions:
+    // - Students can create their submission ONCE (cannot overwrite score/answers)
+    // - Students can read their own single submission doc by email ID (no full collection listing)
+    // - Certificate status fields can be updated once CAMS responds, without altering score
+    // - Full list, full edit, and retake deletion are restricted exclusively to Admin
+    match /submissions/{submissionId} {
+      allow get: if true;
+      allow list, delete: if isAuthorizedAdmin();
+
+      allow create: if !exists(/databases/$(database)/documents/submissions/$(submissionId))
+        && request.resource.data.email is string
+        && request.resource.data.fullName is string
+        && request.resource.data.score is number;
+
+      allow update: if isAuthorizedAdmin() || (
+        request.resource.data.score == resource.data.score
+        && request.resource.data.percentage == resource.data.percentage
+        && request.resource.data.warningsUsed == resource.data.warningsUsed
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['certificateStatus', 'certificateId', 'certificatePdfUrl', 'certificateSentAt', 'certificateError'])
+      );
+    }
+  }
+}

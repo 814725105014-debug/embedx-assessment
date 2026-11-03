@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#070c18" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="referrer" content="no-referrer" />
+  <title>EMBEDX Workshop Quiz · SRM TRP Engineering College</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+
+  <!-- =====================================================================
+       INSTANT BLACKOUT SECURITY CURTAIN & 20-SEC RETURN WARNING MODAL
+       Blocks Circle-to-Search, App Switcher Preview & Enforces 20s Return
+       ===================================================================== -->
+  <div id="security-curtain" role="alertdialog" aria-modal="true" aria-labelledby="warning-title">
+    <div class="warning-card">
+      <span id="warning-badge-text" class="warning-badge">Security Warning 1 of 2</span>
+      <h2 id="warning-title" style="margin: 12px 0 6px; font-size: 20px; color: #fff;">
+        Prohibited Screen Activity Detected!
+      </h2>
+      <p id="warning-reason-text" style="margin: 0; font-size: 13.5px; color: #fca5a5; font-weight: 600;">
+        Mobile tab switch / screen focus lost
+      </p>
+
+      <div class="countdown-ring">
+        <strong id="warning-countdown-num">20</strong>
+        <span>Seconds Left</span>
+      </div>
+
+      <p style="margin: 0 0 16px; font-size: 13px; color: #cbd5e1; line-height: 1.5;">
+        Return and tap the button below within <strong id="warning-grace-label">20s</strong>.
+        If this timer reaches <strong>0</strong> (or after <strong>2 warnings</strong>), your quiz will
+        <strong>auto-submit immediately</strong>.
+      </p>
+
+      <button type="button" id="btn-resume-exam" class="btn btn-danger btn-full">
+        I'm Back — Resume Quiz in Fullscreen
+      </button>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MAIN STUDENT PORTAL SHELL
+       ===================================================================== -->
+  <main id="exam-workspace" class="app-shell">
+
+    <!-- Brand Header (Hidden during active fullscreen quiz to maximize mobile screen space) -->
+    <header id="portal-brand-header" class="brand-bar">
+      <div class="brand-id">
+        <div class="brand-emblem">EX</div>
+        <div class="brand-titles">
+          <h1 id="header-club-name">EMBEDX · Dept. of EEE</h1>
+          <p id="header-college-name">SRM TRP Engineering College</p>
+        </div>
+      </div>
+      <div style="display: flex; gap: 6px; align-items: center;">
+        <a href="/verify" class="admin-link-pill" title="Verify Certificate">Verify</a>
+        <a href="/admin" class="admin-link-pill" title="Coordinator Admin Login">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+            <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          Admin
+        </a>
+      </div>
+    </header>
+
+    <!-- ===================================================================
+         SCREEN 1: PARTICIPANT REGISTRATION
+         =================================================================== -->
+    <section id="screen-register">
+      <div class="card">
+        <div class="hero-chip">
+          <span id="live-status-dot" style="width:7px;height:7px;border-radius:50%;background:#10b981;display:inline-block;"></span>
+          <span id="live-status-label">Proctored Workshop Assessment</span>
+        </div>
+
+        <h2 id="landing-quiz-title" class="card-title">EMBEDX Workshop Quiz</h2>
+        <p id="landing-workshop-subtitle" class="card-subtitle">
+          Basics of Embedded Systems and Embedded Programming Language
+        </p>
+
+        <div class="meta-strip">
+          <div class="meta-tile">
+            <strong id="meta-q-count">30</strong>
+            <span>Questions</span>
+          </div>
+          <div class="meta-tile">
+            <strong id="meta-duration">30 Min</strong>
+            <span>Time Limit</span>
+          </div>
+          <div class="meta-tile">
+            <strong>E-Cert</strong>
+            <span>CAMS Verified</span>
+          </div>
+        </div>
+
+        <div id="quiz-closed-banner" class="alert alert-error hidden">
+          <strong>Assessment Currently Closed:</strong> The workshop coordinator has paused new quiz attempts. Please wait for instructions.
+        </div>
+
+        <div id="register-error" class="alert alert-error hidden"></div>
+
+        <form id="registration-form" novalidate>
+          <div class="form-grid">
+            <div class="field">
+              <label for="reg-name">Participant Full Name <span class="req">*</span></label>
+              <input
+                type="text"
+                id="reg-name"
+                name="fullName"
+                placeholder="e.g. Hariharan S"
+                autocomplete="name"
+                required
+              />
+              <span class="field-hint">Printed verbatim on your CAMS Certificate of Participation.</span>
+            </div>
+
+            <div class="field">
+              <label for="reg-email">Email Address <span class="req">*</span></label>
+              <input
+                type="email"
+                id="reg-email"
+                name="email"
+                placeholder="student@trp.srmtrichy.edu.in or Gmail"
+                autocomplete="email"
+                required
+              />
+              <span class="field-hint">Your signed PDF certificate + QR verification will be emailed here.</span>
+            </div>
+          </div>
+
+          <div class="form-grid two-col" style="margin-top: 14px;">
+            <div class="field">
+              <label for="reg-number">Register Number <span class="req">*</span></label>
+              <input
+                type="text"
+                id="reg-number"
+                name="registerNumber"
+                placeholder="e.g. 814725105001"
+                required
+              />
+            </div>
+
+            <div class="field">
+              <label for="reg-phone">Mobile / WhatsApp No. <span class="req">*</span></label>
+              <input
+                type="tel"
+                id="reg-phone"
+                name="phone"
+                placeholder="10-digit mobile number"
+                inputmode="numeric"
+                maxlength="15"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-grid two-col" style="margin-top: 14px;">
+            <div class="field">
+              <label for="reg-dept">Department <span class="req">*</span></label>
+              <select id="reg-dept" name="department" required>
+                <option value="">Select Department</option>
+                <option value="EEE">EEE — Electrical &amp; Electronics</option>
+                <option value="ECE">ECE — Electronics &amp; Comm.</option>
+                <option value="CSE">CSE — Computer Science</option>
+                <option value="IT">IT — Information Technology</option>
+                <option value="AI&DS">AI &amp; DS</option>
+                <option value="CSE (AI&ML)">CSE (AI &amp; ML)</option>
+                <option value="MECH">Mechanical Engineering</option>
+                <option value="CIVIL">Civil Engineering</option>
+                <option value="OTHER">Other Department</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="reg-year">Year of Study <span class="req">*</span></label>
+              <select id="reg-year" name="year" required>
+                <option value="">Select Year</option>
+                <option value="I Year">I Year</option>
+                <option value="II Year">II Year</option>
+                <option value="III Year">III Year</option>
+                <option value="IV Year">IV Year</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid" style="margin-top: 14px;">
+            <div class="field">
+              <label for="reg-college">College / Institution <span class="req">*</span></label>
+              <input
+                type="text"
+                id="reg-college"
+                name="college"
+                value="SRM TRP Engineering College"
+                required
+              />
+            </div>
+
+            <div id="access-code-field" class="field hidden">
+              <label for="reg-passcode">Workshop Hall PIN <span class="req">*</span></label>
+              <input
+                type="text"
+                id="reg-passcode"
+                name="accessCode"
+                placeholder="Enter PIN announced by coordinator"
+                autocomplete="off"
+              />
+            </div>
+          </div>
+
+          <button type="submit" id="btn-register-continue" class="btn btn-primary btn-full" style="margin-top: 20px;">
+            Register &amp; Proceed to Security Check →
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         SCREEN 2: SECURITY RULES BRIEFING & FULLSCREEN LOCK GATE
+         =================================================================== -->
+    <section id="screen-briefing" class="hidden">
+      <div class="card">
+        <div class="hero-chip">Mandatory Security Briefing</div>
+        <h2 class="card-title">Strict Anti-Cheat Rules</h2>
+        <p class="card-subtitle">
+          Candidate: <strong id="brief-student-name" style="color:#fff;"></strong>
+          (<span id="brief-student-reg"></span>)
+        </p>
+
+        <ul class="rules-list">
+          <li>
+            <span class="rules-icon">1</span>
+            <div>
+              <strong style="color:#fff;">Zero Tab / App Switching:</strong>
+              Switching browser tabs, minimizing the browser, pulling down the notification bar, or using split-screen triggers an immediate violation.
+            </div>
+          </li>
+          <li>
+            <span class="rules-icon">2</span>
+            <div>
+              <strong style="color:#fff;">Circle to Search &amp; Screen Copy Blocked:</strong>
+              Long-press navigation triggers, Google Lens / Circle to Search, text copy, and multi-finger screenshots immediately black out the screen and log a violation.
+            </div>
+          </li>
+          <li>
+            <span class="rules-icon">3</span>
+            <div>
+              <strong style="color:#fff;"><span id="brief-max-warn">2</span> Warnings &amp; <span id="brief-grace-sec">20</span>-Second Return Timer:</strong>
+              If you leave the exam screen, a <strong id="brief-grace-sec-2">20</strong>-second countdown starts immediately. Failing to return within <span id="brief-grace-sec-3">20</span>s — or triggering a 3rd violation — <strong>auto-submits your quiz</strong>.
+            </div>
+          </li>
+          <li style="border-color: rgba(16, 185, 129, 0.3);">
+            <span class="rules-icon" style="background: rgba(16, 185, 129, 0.16); color: #34d399;">✓</span>
+            <div>
+              <strong style="color:#fff;">Automated CAMS Certificate:</strong>
+              Upon completing the quiz, your official signed PDF certificate will be sent to <strong id="brief-student-email" style="color:#38bdf8;"></strong>.
+            </div>
+          </li>
+        </ul>
+
+        <label class="consent-box" for="chk-security-consent">
+          <input type="checkbox" id="chk-security-consent" />
+          <span>
+            I have enabled <strong>Do Not Disturb (DND)</strong> on my phone and understand that tab switching or Circle-to-Search will auto-submit my test.
+          </span>
+        </label>
+
+        <div style="display: grid; grid-template-columns: auto 1fr; gap: 10px;">
+          <button type="button" id="btn-back-edit-reg" class="btn btn-secondary">
+            ← Edit Info
+          </button>
+          <button type="button" id="btn-start-quiz" class="btn btn-emerald" disabled>
+            Lock Screen &amp; Start Quiz
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         SCREEN 3: PROCTORED MOBILE QUIZ INTERFACE
+         =================================================================== -->
+    <section id="screen-quiz" class="hidden">
+      <!-- Sticky Top Proctoring + Timer Bar -->
+      <div class="exam-sticky-top">
+        <div class="exam-top-row">
+          <div id="exam-timer-pill" class="timer-pill">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span id="exam-timer-text">30:00</span>
+          </div>
+
+          <div id="exam-shield-pill" class="shield-pill">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            <span id="exam-warning-counter">0/2 Warn</span>
+          </div>
+
+          <button type="button" id="btn-open-palette" class="btn btn-secondary btn-sm">
+            <span id="answered-counter-text">0/30</span> ▦
+          </button>
+        </div>
+
+        <div class="progress-track">
+          <div id="exam-progress-fill" class="progress-fill" style="width: 3.3%;"></div>
+        </div>
+      </div>
+
+      <!-- Canvas-Protected Question Display (Anti Circle-to-Search / Anti-Copy) -->
+      <div class="question-canvas-wrap">
+        <canvas id="question-canvas" aria-label="Quiz Question"></canvas>
+        <div
+          id="question-fallback-text"
+          class="card hidden"
+          style="font-size: 17px; font-weight: 600; margin-bottom: 0;"
+        ></div>
+      </div>
+
+      <!-- Touch-Friendly Options -->
+      <div id="options-container" class="options-stack"></div>
+
+      <!-- Sticky Mobile Thumb Bar -->
+      <div class="exam-bottom-bar">
+        <div class="exam-bottom-inner">
+          <button type="button" id="btn-prev-q" class="btn btn-secondary">
+            ← Prev
+          </button>
+          <button type="button" id="btn-flag-q" class="btn btn-secondary" title="Mark for Review">
+            ⚑ Review
+          </button>
+          <button type="button" id="btn-next-q" class="btn btn-primary">
+            Next →
+          </button>
+        </div>
+      </div>
+
+      <!-- Slide-up Mobile Question Palette + Submit Sheet -->
+      <div id="palette-drawer" class="palette-backdrop hidden">
+        <div class="palette-sheet">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong style="font-size: 16px;">Question Navigator</strong>
+            <button type="button" id="btn-close-palette" class="btn btn-secondary btn-sm">Close ✕</button>
+          </div>
+          <div style="display:flex; gap:14px; font-size:12px; color:var(--text-muted); margin-top:8px;">
+            <span><b style="color:#34d399;">●</b> Answered</span>
+            <span><b style="color:#fcd34d;">●</b> Review</span>
+            <span><b style="color:#94a3b8;">●</b> Unanswered</span>
+          </div>
+
+          <div id="palette-grid" class="palette-grid"></div>
+
+          <button type="button" id="btn-open-submit-confirm" class="btn btn-emerald btn-full">
+            Finish &amp; Submit Quiz Now
+          </button>
+        </div>
+      </div>
+
+      <!-- Final Submit Confirmation Modal -->
+      <div id="submit-confirm-modal" class="modal-overlay hidden">
+        <div class="modal-box" style="max-width: 400px; text-align: center;">
+          <h3 style="margin: 0 0 8px; font-size: 19px;">Submit Your Quiz?</h3>
+          <p id="submit-summary-text" style="margin: 0 0 18px; font-size: 14px; color: var(--text-secondary);">
+            You have answered 0 of 30 questions.
+          </p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <button type="button" id="btn-cancel-submit" class="btn btn-secondary">
+              Keep Checking
+            </button>
+            <button type="button" id="btn-confirm-submit" class="btn btn-emerald">
+              Yes, Submit
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         SCREEN 4: SUBMISSION COMPLETE + SCORE + CAMS CERTIFICATE STATUS
+         =================================================================== -->
+    <section id="screen-result" class="hidden">
+      <div class="card" style="text-align: center;">
+        <div id="result-mode-chip" class="hero-chip">Assessment Completed</div>
+        <h2 id="result-heading" class="card-title">Thank You for Participating!</h2>
+        <p id="result-candidate-line" class="card-subtitle" style="margin-bottom: 12px;"></p>
+
+        <!-- Shown when resultVisibility !== 'receipt_only' -->
+        <div id="result-score-section">
+          <div class="score-circle">
+            <strong id="result-score-fraction">--/30</strong>
+            <span id="result-score-percent">--% Score</span>
+          </div>
+        </div>
+
+        <div class="meta-strip" style="margin-top: 12px;">
+          <div class="meta-tile">
+            <strong id="result-time-taken">--</strong>
+            <span>Time Taken</span>
+          </div>
+          <div class="meta-tile">
+            <strong id="result-warnings-used">0 / 2</strong>
+            <span>Warnings</span>
+          </div>
+          <div class="meta-tile">
+            <strong id="result-submit-type">Manual</strong>
+            <span>Submit Type</span>
+          </div>
+        </div>
+
+        <div id="result-autosubmit-alert" class="alert alert-error hidden" style="text-align: left;"></div>
+
+        <!-- CAMS Certificate Status Block -->
+        <div id="result-cert-box" class="cert-banner" style="text-align: left;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+            <strong id="cert-status-title" style="font-size: 15px; color: #6ee7b7;">
+              Issuing CAMS Certificate...
+            </strong>
+          </div>
+          <p id="cert-status-desc" style="margin: 0; font-size: 13px; color: var(--text-secondary);">
+            Connecting to SRM TRP Engineering College CAMS Certificate Server...
+          </p>
+          <div id="cert-id-row" class="hidden" style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 13px;">
+            <div>Certificate ID: <strong id="cert-id-value" style="font-family: monospace; color: #fff;"></strong></div>
+            <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px;">
+              <a id="cert-verify-btn" href="#" target="_blank" rel="noopener" class="btn btn-primary btn-sm">
+                Verify Certificate Online ↗
+              </a>
+              <a id="cert-pdf-btn" href="#" target="_blank" rel="noopener" class="btn btn-secondary btn-sm hidden">
+                Open Certificate PDF ↗
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Optional Answer Review (only shown when Admin sets resultVisibility === 'full_answers') -->
+        <div id="result-answers-review" class="hidden" style="text-align: left; margin-top: 22px;">
+          <h3 style="font-size: 16px; margin-bottom: 12px;">Detailed Answer Review</h3>
+          <div id="result-answers-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script type="module" src="/js/quiz-app.js"></script>
+</body>
+</html>

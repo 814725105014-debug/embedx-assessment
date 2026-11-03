@@ -1,0 +1,14 @@
+{
+  "name": "embedx-workshop-quiz-portal",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Mobile-first proctored quiz & CAMS certificate automation portal for EMBEDX Club, SRM TRP Engineering College",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node server.mjs",
+    "deploy": "npx firebase-tools deploy",
+    "deploy:hosting": "npx firebase-tools deploy --only hosting",
+    "deploy:rules": "npx firebase-tools deploy --only firestore:rules"
+  }
+}

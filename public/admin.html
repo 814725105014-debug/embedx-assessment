@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#070c18" />
+  <title>Coordinator Admin Portal · EMBEDX Quiz &amp; CAMS</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+
+  <!-- =====================================================================
+       DEDICATED ADMIN LOGIN VIEW (RESTRICTED EXCLUSIVELY TO AUTHORIZED EMAIL)
+       ===================================================================== -->
+  <main id="admin-login-view" class="app-shell">
+    <header class="brand-bar">
+      <div class="brand-id">
+        <div class="brand-emblem">EX</div>
+        <div class="brand-titles">
+          <h1>EMBEDX Admin Access</h1>
+          <p>Restricted Coordinator Console</p>
+        </div>
+      </div>
+      <a href="/" class="admin-link-pill">← Student Portal</a>
+    </header>
+
+    <section class="card">
+      <div class="hero-chip">Authorized Coordinator Only</div>
+      <h2 class="card-title">Administrator Sign In</h2>
+      <p class="card-subtitle">
+        Separate administrative authentication for EMBEDX Quiz Control, Live Anti-Cheat Proctoring &amp; CAMS Certificate Management.
+      </p>
+
+      <div id="admin-login-error" class="alert alert-error hidden"></div>
+
+      <form id="admin-login-form" novalidate>
+        <div class="form-grid">
+          <div class="field">
+            <label for="admin-email">Administrator Email <span class="req">*</span></label>
+            <input
+              type="email"
+              id="admin-email"
+              placeholder="Authorized SRM TRP coordinator email"
+              autocomplete="username"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="admin-password">Password <span class="req">*</span></label>
+            <div style="position: relative;">
+              <input
+                type="password"
+                id="admin-password"
+                placeholder="Enter administrator password"
+                autocomplete="current-password"
+                style="padding-right: 68px;"
+                required
+              />
+              <button
+                type="button"
+                id="btn-toggle-pw"
+                style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14); color:#cbd5e1; border-radius:6px; padding:5px 9px; font-size:12px; cursor:pointer;"
+              >
+                Show
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" id="btn-admin-signin" class="btn btn-primary btn-full" style="margin-top: 20px;">
+          Sign In to Admin Console →
+        </button>
+      </form>
+    </section>
+  </main>
+
+  <!-- =====================================================================
+       AUTHENTICATED ADMIN DASHBOARD VIEW
+       ===================================================================== -->
+  <div id="admin-dashboard-view" class="admin-shell hidden">
+
+    <!-- Top Admin Bar -->
+    <header class="brand-bar" style="flex-wrap: wrap;">
+      <div class="brand-id">
+        <div class="brand-emblem">EX</div>
+        <div class="brand-titles">
+          <h1>EMBEDX Coordinator Control Center</h1>
+          <p id="admin-backend-badge">Signed in as 814725105014@trp.srmtrichy.edu.in</p>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <a href="/" target="_blank" class="btn btn-secondary btn-sm">Open Student View ↗</a>
+        <button type="button" id="btn-admin-logout" class="btn btn-danger btn-sm">Sign Out</button>
+      </div>
+    </header>
+
+    <div id="admin-toast" class="alert alert-success hidden"></div>
+
+    <!-- KPI Summary Row -->
+    <section class="stats-grid">
+      <div class="stat-box">
+        <div class="label">Submitted</div>
+        <div id="kpi-total-sub" class="value">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="label">Live Active Now</div>
+        <div id="kpi-live-active" class="value" style="color: #38bdf8;">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="label">Average Score</div>
+        <div id="kpi-avg-score" class="value" style="color: #34d399;">0%</div>
+      </div>
+      <div class="stat-box">
+        <div class="label">Auto-Submitted</div>
+        <div id="kpi-auto-sub" class="value" style="color: #f87171;">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="label">Warnings Logged</div>
+        <div id="kpi-warnings" class="value" style="color: #fbbf24;">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="label">Certificates Sent</div>
+        <div id="kpi-certs-sent" class="value" style="color: #a78bfa;">0</div>
+      </div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <nav class="admin-tabs">
+      <button type="button" class="tab-btn active" data-tab="submissions">
+        1. Live Monitor &amp; Submissions
+      </button>
+      <button type="button" class="tab-btn" data-tab="settings">
+        2. Quiz &amp; Security Rules
+      </button>
+      <button type="button" class="tab-btn" data-tab="questions">
+        3. Question Bank (30)
+      </button>
+      <button type="button" class="tab-btn" data-tab="cams">
+        4. CAMS Certificate &amp; Firebase Setup
+      </button>
+    </nav>
+
+    <!-- ===================================================================
+         TAB 1: LIVE PROCTORING & SUBMISSIONS
+         =================================================================== -->
+    <section id="tab-submissions" class="admin-tab-panel">
+
+      <!-- Quick Live Controls -->
+      <div class="card" style="padding: 16px 18px;">
+        <div style="display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:space-between;">
+          <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <button type="button" id="btn-quick-toggle-quiz" class="btn btn-emerald btn-sm">
+              ● Quiz Status: OPEN
+            </button>
+            <div style="display:flex; align-items:center; gap:8px; font-size:13px;">
+              <span style="color:var(--text-muted);">Student Result View:</span>
+              <select id="quick-result-visibility" style="padding:6px 10px; border-radius:8px; background:var(--bg-input); color:#fff; border:1px solid var(--border-subtle); font-size:13px;">
+                <option value="score_only">Score &amp; Cert Status Only</option>
+                <option value="receipt_only">Submission Receipt Only (Hide Score)</option>
+                <option value="full_answers">Full Score + Answers &amp; Explanations</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            <button type="button" id="btn-bulk-issue-certs" class="btn btn-primary btn-sm">
+              ✉ Issue All Pending Certificates
+            </button>
+            <button type="button" id="btn-export-cams-csv" class="btn btn-secondary btn-sm">
+              ⬇ Export CAMS Sheet CSV
+            </button>
+            <button type="button" id="btn-export-full-csv" class="btn btn-secondary btn-sm">
+              ⬇ Export Full Results CSV
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Live Test-Takers -->
+      <div id="live-sessions-card" class="card hidden">
+        <h3 style="margin:0 0 10px; font-size:15px; color:#38bdf8;">
+          ● Students Currently Taking Quiz Live
+        </h3>
+        <div id="live-sessions-list" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:10px;"></div>
+      </div>
+
+      <!-- Submissions Table -->
+      <div class="card">
+        <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; align-items:center; margin-bottom:14px;">
+          <input
+            type="search"
+            id="sub-search-input"
+            placeholder="Search by Name, Reg No, Email or Dept..."
+            style="max-width:340px; width:100%; padding:9px 12px; border-radius:9px; background:var(--bg-input); border:1px solid var(--border-subtle); color:#fff; font-size:14px;"
+          />
+          <select
+            id="sub-filter-select"
+            style="padding:9px 12px; border-radius:9px; background:var(--bg-input); border:1px solid var(--border-subtle); color:#fff; font-size:13.5px;"
+          >
+            <option value="all">All Submissions</option>
+            <option value="autosubmit">Auto-Submitted Only</option>
+            <option value="warned">Had Security Warnings (≥1)</option>
+            <option value="cert_sent">Certificate Sent</option>
+            <option value="cert_pending">Certificate Pending / Queued</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Participant</th>
+                <th>Reg No &amp; Dept</th>
+                <th>Score</th>
+                <th>Time</th>
+                <th>Security</th>
+                <th>CAMS Certificate</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="submissions-tbody">
+              <tr>
+                <td colspan="7" style="text-align:center; color:var(--text-muted); padding:28px;">
+                  No quiz submissions yet. Share the Student Portal link to start collecting responses!
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         TAB 2: QUIZ & ANTI-CHEAT SECURITY SETTINGS
+         =================================================================== -->
+    <section id="tab-settings" class="admin-tab-panel hidden">
+      <div class="card">
+        <h3 style="margin:0 0 6px; font-size:18px;">Quiz &amp; Mobile Anti-Cheat Configuration</h3>
+        <p class="card-subtitle">Changes apply immediately to all new quiz sessions.</p>
+
+        <form id="settings-form">
+          <div class="form-grid two-col">
+            <div class="field">
+              <label for="cfg-quiz-title">Quiz Assessment Title</label>
+              <input type="text" id="cfg-quiz-title" required />
+            </div>
+            <div class="field">
+              <label for="cfg-workshop-name">Workshop Name (Printed on CAMS Certificate)</label>
+              <input type="text" id="cfg-workshop-name" required />
+            </div>
+            <div class="field">
+              <label for="cfg-duration">Quiz Time Limit (Minutes)</label>
+              <input type="number" id="cfg-duration" min="5" max="180" required />
+            </div>
+            <div class="field">
+              <label for="cfg-hall-pin">Optional Workshop Hall PIN (Leave blank for open)</label>
+              <input type="text" id="cfg-hall-pin" placeholder="e.g. EMBEDX26" />
+            </div>
+            <div class="field">
+              <label for="cfg-max-warnings">Max Security Warnings Allowed</label>
+              <input type="number" id="cfg-max-warnings" min="0" max="5" required />
+              <span class="field-hint">Default: 2 warnings (3rd violation auto-submits immediately).</span>
+            </div>
+            <div class="field">
+              <label for="cfg-grace-sec">Return Countdown Per Warning (Seconds)</label>
+              <input type="number" id="cfg-grace-sec" min="5" max="60" required />
+              <span class="field-hint">Default: 20 seconds wall-clock timer to come back or auto-submit.</span>
+            </div>
+            <div class="field">
+              <label for="cfg-cert-mode">Certificate Issuance Rule</label>
+              <select id="cfg-cert-mode">
+                <option value="all_completions">Auto-send to ALL Quiz Completions</option>
+                <option value="min_score">Auto-send ONLY if Score ≥ Minimum %</option>
+                <option value="manual_only">Manual Admin Approval Only</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="cfg-min-score">Minimum Passing Score % (When Min Score rule selected)</label>
+              <input type="number" id="cfg-min-score" min="0" max="100" />
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:10px; margin-top:18px;">
+            <label class="switch-row">
+              <span><strong>Shuffle Question Order</strong><br><small style="color:var(--text-muted);">Unique sequence per student</small></span>
+              <input type="checkbox" id="cfg-shuffle-q" />
+            </label>
+            <label class="switch-row">
+              <span><strong>Shuffle MCQ Options</strong><br><small style="color:var(--text-muted);">Prevents "all Option A" guessing</small></span>
+              <input type="checkbox" id="cfg-shuffle-opt" />
+            </label>
+            <label class="switch-row">
+              <span><strong>Require Fullscreen Lock</strong><br><small style="color:var(--text-muted);">Exiting fullscreen triggers warning</small></span>
+              <input type="checkbox" id="cfg-fullscreen" />
+            </label>
+            <label class="switch-row">
+              <span><strong>Canvas Anti-Circle-to-Search</strong><br><small style="color:var(--text-muted);">Renders questions on non-selectable Canvas</small></span>
+              <input type="checkbox" id="cfg-canvas-shield" />
+            </label>
+            <label class="switch-row">
+              <span><strong>Student RegNo Watermark</strong><br><small style="color:var(--text-muted);">Diagonal watermark across question card</small></span>
+              <input type="checkbox" id="cfg-watermark" />
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="margin-top:20px;">
+            Save Quiz &amp; Security Configuration
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         TAB 3: QUESTION BANK MANAGER (ALL 30 EMBEDX QUESTIONS)
+         =================================================================== -->
+    <section id="tab-questions" class="admin-tab-panel hidden">
+      <div class="card">
+        <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <div>
+            <h3 style="margin:0; font-size:18px;">EMBEDX Workshop Question Bank (<span id="qbank-count">30</span>)</h3>
+            <p style="margin:3px 0 0; font-size:13px; color:var(--text-muted);">
+              Loaded from <code>EMBEDX_30_Question_Workshop_Quiz_with_Answers.pdf</code>
+            </p>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button type="button" id="btn-add-question" class="btn btn-primary btn-sm">+ Add Question</button>
+            <button type="button" id="btn-reset-questions" class="btn btn-secondary btn-sm">↺ Restore Default 30 PDF Questions</button>
+          </div>
+        </div>
+
+        <div id="questions-admin-list" style="display:flex; flex-direction:column; gap:12px;"></div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         TAB 4: CAMS CERTIFICATE SYSTEM + FIREBASE CLOUD CONFIG
+         =================================================================== -->
+    <section id="tab-cams" class="admin-tab-panel hidden">
+      <div class="card">
+        <div class="hero-chip">CAMS Google Workspace Integration</div>
+        <h3 style="margin:0 0 6px; font-size:18px;">Certificate Automation Management System (CAMS)</h3>
+        <p class="card-subtitle">
+          Pre-wired to your SRM TRP Engineering College Google Sheet (<code>1jiVDFpIxGwfSlHBt3vaHl-5GFd8DPGapSS4tsR-FhJQ</code>) &amp; Verification Web App.
+        </p>
+
+        <form id="cams-config-form">
+          <label class="switch-row" style="margin-bottom: 14px;">
+            <span><strong>Enable Automatic CAMS Certificate Trigger</strong><br><small style="color:var(--text-muted);">Calls your Google Apps Script Web App upon quiz submission</small></span>
+            <input type="checkbox" id="cams-enabled" />
+          </label>
+
+          <div class="form-grid two-col">
+            <div class="field">
+              <label for="cams-webhook-url">CAMS Apps Script Web App URL (<code>/exec</code>)</label>
+              <input type="url" id="cams-webhook-url" required />
+            </div>
+            <div class="field">
+              <label for="cams-verify-url">Public QR Verification Base URL (<code>/exec</code>)</label>
+              <input type="url" id="cams-verify-url" required />
+            </div>
+            <div class="field">
+              <label for="cams-secret">Shared Webhook Secret Key</label>
+              <input type="text" id="cams-secret" required />
+            </div>
+            <div class="field">
+              <label for="cams-duration">Course Duration Token (<code>{{DURATION}}</code>)</label>
+              <input type="text" id="cams-duration" placeholder="e.g. 1 Day" />
+            </div>
+            <div class="field">
+              <label for="cams-conducted-by">Conducted By</label>
+              <input type="text" id="cams-conducted-by" />
+            </div>
+          </div>
+
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:16px;">
+            <button type="submit" class="btn btn-primary btn-sm">Save CAMS Settings</button>
+            <button type="button" id="btn-test-cams" class="btn btn-secondary btn-sm">⚡ Test CAMS Webhook Connection</button>
+          </div>
+          <div id="cams-ping-result" class="alert alert-info hidden" style="margin-top:12px;"></div>
+        </form>
+
+        <hr style="border:0; border-top:1px solid var(--border-subtle); margin:22px 0;" />
+
+        <h4 style="margin:0 0 8px; font-size:15px;">
+          One-Time CAMS Bridge Script (<code>QuizWebhook.gs</code>)
+        </h4>
+        <p style="margin:0 0 10px; font-size:13px; color:var(--text-secondary);">
+          Your existing CAMS project handles Google Form triggers (<code>onFormSubmit</code>) and QR verification (<code>doGet</code>).
+          To let this website trigger CAMS automatically via <code>doPost</code>, open your CAMS Apps Script editor, create a new Script file named <strong><code>QuizWebhook</code></strong>, paste the code below, and click <strong>Deploy → Manage deployments → Edit → Version: New version → Deploy</strong>.
+        </p>
+        <div style="display:flex; justify-content:flex-end; margin-bottom:6px;">
+          <button type="button" id="btn-copy-webhook-gs" class="btn btn-secondary btn-sm">Copy QuizWebhook.gs</button>
+        </div>
+        <pre id="webhook-gs-preview" class="code-block">Loading QuizWebhook.gs...</pre>
+      </div>
+
+      <!-- Firebase Cloud Live Config Card -->
+      <div class="card">
+        <div class="hero-chip">Firebase Cloud Database &amp; Auth</div>
+        <h3 style="margin:0 0 6px; font-size:18px;">Firebase Live Connection</h3>
+        <p class="card-subtitle">
+          Paste your <code>firebaseConfig</code> JSON object from Firebase Console → Project Settings → Web App to activate multi-device Cloud Firestore &amp; Firebase Auth immediately (also save it permanently in <code>public/js/firebase-config.js</code> before deploying!).
+        </p>
+
+        <div class="field">
+          <label for="firebase-json-input">Firebase Config JSON (<code>{ "apiKey": "...", "projectId": "..." }</code>)</label>
+          <textarea id="firebase-json-input" rows="7" style="font-family:monospace; font-size:13px;" placeholder='{
+  "apiKey": "AIzaSy...",
+  "authDomain": "your-project.firebaseapp.com",
+  "projectId": "your-project",
+  "storageBucket": "your-project.firebasestorage.app",
+  "messagingSenderId": "...",
+  "appId": "..."
+}'></textarea>
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+          <button type="button" id="btn-save-firebase-cfg" class="btn btn-emerald btn-sm">
+            Connect Firebase Config
+          </button>
+          <button type="button" id="btn-clear-firebase-cfg" class="btn btn-secondary btn-sm">
+            Clear Override (Use File Default)
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- =====================================================================
+       SUBMISSION DETAIL & VIOLATION LOG MODAL
+       ===================================================================== -->
+  <div id="detail-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 id="detail-modal-title" style="margin:0; font-size:18px;">Submission Details</h3>
+        <button type="button" id="btn-close-detail-modal" class="btn btn-secondary btn-sm">Close ✕</button>
+      </div>
+      <div id="detail-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       QUESTION ADD / EDIT MODAL
+       ===================================================================== -->
+  <div id="question-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <h3 id="qmodal-title" style="margin:0 0 14px; font-size:18px;">Edit Question</h3>
+      <form id="question-edit-form">
+        <input type="hidden" id="qedit-idx" value="-1" />
+        <div class="form-grid">
+          <div class="field">
+            <label>Category / Topic</label>
+            <input type="text" id="qedit-category" placeholder="e.g. ESP32" required />
+          </div>
+          <div class="field">
+            <label>Question Type</label>
+            <select id="qedit-type">
+              <option value="mcq">Multiple Choice (4 Options)</option>
+              <option value="tf">True / False (2 Options)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Question Prompt</label>
+            <textarea id="qedit-prompt" rows="3" required></textarea>
+          </div>
+          <div id="qedit-options-wrap" class="form-grid"></div>
+          <div class="field">
+            <label>Correct Option</label>
+            <select id="qedit-correct"></select>
+          </div>
+          <div class="field">
+            <label>Explanation (Facilitator / Review Reference)</label>
+            <textarea id="qedit-explanation" rows="2"></textarea>
+          </div>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+          <button type="button" id="btn-cancel-qmodal" class="btn btn-secondary btn-sm">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">Save Question</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="/js/admin-app.js"></script>
+</body>
+</html>
